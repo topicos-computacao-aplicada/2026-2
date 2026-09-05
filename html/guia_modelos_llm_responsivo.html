@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modelos de Linguagem de Grande Escala (LLMs) — Guia Visual e Técnico</title>
+<meta name="description" content="Guia visual, técnico e responsivo sobre LLMs: contexto, prompting, RAG, embeddings, fine-tuning, agentes, bancos vetoriais, implantação local, otimização, avaliação e boas práticas.">
+<style>
+:root{
+  --bg:#f4f7fb;
+  --surface:#ffffff;
+  --surface2:#f8fafc;
+  --text:#172033;
+  --muted:#667085;
+  --line:#dfe6ef;
+  --blue:#1d67b1;
+  --blue2:#eaf4ff;
+  --purple:#7f2a8b;
+  --purple2:#f8ebfb;
+  --red:#c52a24;
+  --red2:#fff0ee;
+  --green:#239146;
+  --green2:#ecf9f0;
+  --orange:#d8691f;
+  --orange2:#fff2e8;
+  --gold:#d7a300;
+  --gold2:#fff8d9;
+  --slate:#586274;
+  --slate2:#eef1f5;
+  --shadow:0 10px 30px rgba(31,45,61,.08);
+  --radius:18px;
+  --max:1500px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(29,103,177,.08), transparent 30%),
+    radial-gradient(circle at 90% 10%, rgba(127,42,139,.06), transparent 25%),
+    var(--bg);
+  line-height:1.55;
+}
+a{color:inherit}
+button,input{font:inherit}
+code,pre{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace}
+.hero{
+  background:linear-gradient(120deg,#123f70 0%,#1c679f 46%,#145f72 100%);
+  color:white;
+  padding:28px 18px 34px;
+  box-shadow:var(--shadow);
+}
+.hero-inner{max-width:var(--max);margin:auto;display:grid;grid-template-columns:1fr auto;gap:22px;align-items:center}
+.hero h1{font-size:clamp(2rem,4vw,4.5rem);line-height:1.02;margin:.25rem 0 .7rem;letter-spacing:-.04em}
+.hero p{margin:.25rem 0;color:#e9f5ff;font-size:clamp(1rem,1.5vw,1.25rem);max-width:1050px}
+.hero-badge{
+  padding:12px 16px;border:1px solid rgba(255,255,255,.25);
+  background:rgba(255,255,255,.1);border-radius:999px;font-weight:700;white-space:nowrap
+}
+.shell{max-width:var(--max);margin:auto;padding:20px 18px 70px}
+.toolbar{
+  position:sticky;top:0;z-index:20;
+  margin:0 -18px 18px;padding:10px 18px;
+  background:rgba(244,247,251,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(223,230,239,.8)
+}
+.toolbar-inner{max-width:var(--max);margin:auto;display:flex;gap:10px;align-items:center}
+.search{flex:1;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.search input{width:100%;border:none;outline:none;background:transparent;color:var(--text)}
+.pill-btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:9px 14px;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden
+}
+.card .head{padding:18px 20px;color:white}
+.card .body{padding:20px}
+.card h2,.card h3{margin-top:0}
+.card h2{font-size:clamp(1.45rem,2vw,2.1rem)}
+.card h3{font-size:1.1rem;margin-bottom:.5rem}
+.card p{margin:.45rem 0}
+.span-12{grid-column:span 12}.span-8{grid-column:span 8}.span-7{grid-column:span 7}.span-6{grid-column:span 6}.span-5{grid-column:span 5}.span-4{grid-column:span 4}
+.blue .head{background:linear-gradient(100deg,#1b69b7,#2b83ca)}
+.purple .head{background:linear-gradient(100deg,#7d258c,#a33aa7)}
+.red .head{background:linear-gradient(100deg,#bd1f1a,#dc4139)}
+.green .head{background:linear-gradient(100deg,#17833a,#35a355)}
+.orange .head{background:linear-gradient(100deg,#bf5916,#e47e32)}
+.gold .head{background:linear-gradient(100deg,#c28b00,#e7b80a);color:#1b1b1b}
+.slate .head{background:linear-gradient(100deg,#4a5565,#768296)}
+.hero-card{
+  grid-column:span 12;
+  padding:26px;
+  border-radius:28px;
+  background:linear-gradient(135deg,#fff,#f7fbff);
+  border:2px solid #b8c9db;
+  box-shadow:var(--shadow);
+  display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center
+}
+.hero-card h2{font-size:clamp(2rem,3vw,3.4rem);line-height:1.04;margin:0 0 10px}
+.hero-card .tagline{font-size:1.08rem;color:var(--muted)}
+.flow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.flow span{background:#edf3f8;border:1px solid #dce7f0;border-radius:999px;padding:8px 12px;font-weight:700}
+.arrow{opacity:.55}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.kpi{background:var(--surface2);border:1px solid var(--line);padding:14px;border-radius:14px}
+.kpi b{display:block;font-size:1.05rem}
+.kpi small{color:var(--muted)}
+.subgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.mini{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface2)}
+.mini h3{margin:0 0 6px}
+ul{padding-left:1.2rem}
+li{margin:.25rem 0}
+.callout{
+  margin:12px 0;padding:12px 14px;border-radius:12px;border-left:5px solid var(--blue);
+  background:var(--blue2)
+}
+.callout.warn{border-left-color:#d48c00;background:#fff7df}
+.callout.ok{border-left-color:var(--green);background:var(--green2)}
+.callout.risk{border-left-color:var(--red);background:var(--red2)}
+.codebox{position:relative;margin:12px 0}
+pre{
+  margin:0;overflow:auto;padding:16px 18px;border-radius:14px;
+  background:#0f172a;color:#d8e5ff;border:1px solid #253553;font-size:.88rem;line-height:1.55
+}
+.copy{
+  position:absolute;top:8px;right:8px;border:1px solid #43577e;background:#1d2b48;color:white;
+  border-radius:8px;padding:6px 9px;cursor:pointer;font-size:.78rem
+}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;min-width:760px;background:white}
+th,td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+th{background:#f1f5f9;position:sticky;top:0;z-index:1}
+tr:last-child td{border-bottom:none}
+.badge{display:inline-block;border-radius:999px;padding:4px 9px;font-size:.76rem;font-weight:800;background:#eef3f8}
+.badge.blue{background:var(--blue2);color:#174f85}
+.section-title{margin:34px 0 12px;font-size:clamp(1.5rem,2.3vw,2.4rem);letter-spacing:-.025em}
+.toc{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:16px 0 24px
+}
+.toc a{
+  text-decoration:none;background:var(--surface);border:1px solid var(--line);
+  border-radius:12px;padding:10px 12px;font-weight:700;box-shadow:0 5px 16px rgba(31,45,61,.04)
+}
+.arch{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:stretch
+}
+.arch .node{border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center;background:white;font-weight:700}
+.arch .node small{display:block;color:var(--muted);font-weight:500;margin-top:4px}
+.arch .link{display:flex;align-items:center;justify-content:center;font-size:1.5rem;opacity:.45}
+.timeline{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.step{border-top:5px solid var(--blue);background:white;border-radius:12px;border-left:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:13px}
+.step .n{font-size:.76rem;font-weight:900;color:var(--blue);text-transform:uppercase}
+.footer{margin-top:40px;padding:26px;border-radius:20px;background:#153f66;color:white}
+.footer p{color:#dcecff}
+.glossary{columns:3;column-gap:16px}
+.term{break-inside:avoid;border:1px solid var(--line);background:white;border-radius:12px;padding:12px;margin:0 0 10px}
+.term b{display:block}
+.muted{color:var(--muted)}
+.hide{display:none!important}
+@media(max-width:1100px){
+  .span-8,.span-7,.span-6,.span-5,.span-4{grid-column:span 12}
+  .hero-card{grid-template-columns:1fr}
+  .toc{grid-template-columns:repeat(3,1fr)}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .arch{grid-template-columns:1fr}
+  .arch .link{transform:rotate(90deg)}
+  .timeline{grid-template-columns:repeat(3,1fr)}
+  .glossary{columns:2}
+}
+@media(max-width:700px){
+  .hero-inner{grid-template-columns:1fr}.hero-badge{justify-self:start}
+  .subgrid{grid-template-columns:1fr}
+  .toc{grid-template-columns:1fr 1fr}
+  .kpis{grid-template-columns:1fr}
+  .timeline{grid-template-columns:1fr}
+  .glossary{columns:1}
+  .toolbar-inner{flex-wrap:wrap}.search{flex-basis:100%}
+  .card .body,.card .head{padding:16px}
+}
+@media print{
+  body{background:white}.toolbar{display:none}.card,.hero-card{box-shadow:none;break-inside:avoid}.shell{max-width:none}.hero{background:#174f85!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="badge">Guia visual + técnico • Português (Brasil)</div>
+      <h1>Modelos de Linguagem de Grande Escala (LLMs)</h1>
+      <p>Contexto, prompting, RAG, embeddings, fine-tuning, agentes, bancos vetoriais, implantação local, otimização, avaliação, segurança e aplicações — com exemplos práticos.</p>
+    </div>
+    <div class="hero-badge">Explorar → Aprender → Construir → Avaliar</div>
+  </div>
+</header>
+
+<main class="shell">
+  <div class="toolbar">
+    <div class="toolbar-inner">
+      <label class="search">🔎 <input id="search" placeholder="Pesquisar: RAG, LoRA, MCP, embeddings, quantização..."></label>
+      <button class="pill-btn" onclick="window.print()">🖨️ Imprimir / PDF</button>
+      <button class="pill-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ Topo</button>
+    </div>
+  </div>
+
+  <section class="hero-card searchable">
+    <div>
+      <span class="badge blue">Visão geral</span>
+      <h2>O que é um LLM?</h2>
+      <p class="tagline">Um LLM é um modelo de IA treinado em grandes volumes de texto e outros dados para estimar e gerar sequências de tokens. Na prática, ele pode responder perguntas, resumir, traduzir, programar, extrair informações e agir sobre ferramentas.</p>
+      <div class="flow"><span>Dados</span><b class="arrow">→</b><span>Tokens</span><b class="arrow">→</b><span>Transformer</span><b class="arrow">→</b><span>Probabilidades</span><b class="arrow">→</b><span>Resposta</span></div>
+      <div class="callout ok"><b>Ideia central:</b> o LLM não “consulta uma verdade” por padrão. Para conhecimento externo e atualizado, use RAG, ferramentas ou busca.</div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><b>Contexto</b><small>O que o modelo recebe agora.</small></div>
+      <div class="kpi"><b>Pesos</b><small>O conhecimento aprendido.</small></div>
+      <div class="kpi"><b>Ferramentas</b><small>APIs, bancos, navegador, código.</small></div>
+      <div class="kpi"><b>Avaliação</b><small>Qualidade, segurança, custo e latência.</small></div>
+    </div>
+  </section>
+
+  <nav class="toc">
+    <a href="#contexto">1. Contexto</a><a href="#dados">2. Dados & RAG</a><a href="#modelos">3. Modelos</a>
+    <a href="#ajuste">4. Ajuste</a><a href="#avaliacao">5. Avaliação</a><a href="#vetores">6. Vetores</a>
+    <a href="#agentes">7. Agentes</a><a href="#local">8. Implantação</a><a href="#otimizacao">9. Otimização</a>
+    <a href="#arquitetura">10. Arquitetura</a><a href="#aplicacoes">11. Aplicações</a><a href="#boas-praticas">12. Boas práticas</a>
+    <a href="#roadmap">13. Roadmap</a><a href="#glossario">14. Glossário</a><a href="#leituras">15. Leituras</a>
+  </nav>
+
+  <h2 class="section-title" id="contexto">1. Gerenciamento de Contexto e Prompting</h2>
+  <div class="grid">
+    <article class="card blue span-8 searchable"><div class="head"><h2>🧠 Contexto: como orientar o comportamento</h2></div><div class="body">
+      <div class="subgrid">
+        <div class="mini"><h3>Instruções</h3><p>Definem objetivo, restrições, critérios e formato.</p><div class="callout"><b>Exemplo:</b> “Explique recursão para alunos do 1º período, em até 250 palavras, com exemplo Python.”</div></div>
+        <div class="mini"><h3>System prompt</h3><div class="codebox"><button class="copy">Copiar</button><pre><code>Você é um tutor de Ciência da Computação.
+Priorize precisão, exemplos executáveis e linguagem didática.
+Quando houver incerteza, sinalize-a.</code></pre></div></div>
+        <div class="mini"><h3>Zero-shot, one-shot e few-shot</h3><ul><li><b>Zero-shot:</b> só instrução.</li><li><b>One-shot:</b> um exemplo.</li><li><b>Few-shot:</b> vários exemplos.</li></ul></div>
+        <div class="mini"><h3>Memória</h3><p>Curta, persistente ou recuperada de base externa.</p><div class="callout warn"><b>Cuidado:</b> aplique consentimento, minimização e retenção adequada.</div></div>
+        <div class="mini"><h3>Otimização de tokens</h3><ul><li>Resumir histórico antigo.</li><li>Remover duplicação.</li><li>Selecionar apenas documentos relevantes.</li></ul></div>
+        <div class="mini"><h3>Saída estruturada</h3><div class="codebox"><button class="copy">Copiar</button><pre><code>{
+  "classificacao": "positivo",
+  "confianca": 0.92,
+  "justificativa": "..."
+}</code></pre></div></div>
+      </div>
+    </div></article>
+
+    <article class="card blue span-4 searchable"><div class="head"><h2>🧩 Bons prompts</h2></div><div class="body">
+      <ol><li><b>Contexto</b></li><li><b>Tarefa</b></li><li><b>Restrições</b></li><li><b>Critérios</b></li><li><b>Formato</b></li><li><b>Exemplos</b></li></ol>
+      <div class="callout ok"><b>Template:</b> “Atue como [papel]. Dado [contexto], execute [tarefa]. Respeite [restrições]. Produza [formato].”</div>
+      <div class="callout risk"><b>Antipadrão:</b> prompts vagos produzem respostas genéricas.</div>
+    </div></article>
+  </div>
+
+  <h2 class="section-title" id="dados">2. Dados Externos, RAG e Engenharia de Conhecimento</h2>
+  <div class="grid">
+    <article class="card slate span-7 searchable"><div class="head"><h2>📚 Pipeline RAG</h2></div><div class="body">
+      <div class="timeline">
+        <div class="step"><div class="n">1</div><b>Ingestão</b><p>PDF, HTML, DOCX, APIs.</p></div>
+        <div class="step"><div class="n">2</div><b>Extração</b><p>Texto, tabelas, metadados.</p></div>
+        <div class="step"><div class="n">3</div><b>Chunking</b><p>Trechos com contexto.</p></div>
+        <div class="step"><div class="n">4</div><b>Embeddings</b><p>Vetores semânticos.</p></div>
+        <div class="step"><div class="n">5</div><b>Busca</b><p>Top-k + filtros + reranking.</p></div>
+        <div class="step"><div class="n">6</div><b>Geração</b><p>Resposta baseada nas fontes.</p></div>
+      </div>
+      <div class="callout"><b>Exemplo:</b> um assistente acadêmico busca no regulamento os trechos sobre aproveitamento de créditos e responde com base neles.</div>
+    </div></article>
+
+    <article class="card slate span-5 searchable"><div class="head"><h2>✂️ Chunking</h2></div><div class="body">
+      <ul><li><b>Fixo:</b> 300–800 tokens.</li><li><b>Semântico:</b> títulos e parágrafos.</li><li><b>Hierárquico:</b> resumo + detalhes.</li><li><b>Por entidade:</b> normas e contratos.</li></ul>
+      <div class="callout warn"><b>Trade-off:</b> chunks pequenos perdem contexto; grandes aumentam custo.</div>
+    </div></article>
+
+    <article class="card slate span-6 searchable"><div class="head"><h2>🔎 Retrieval + reranking</h2></div><div class="body">
+      <ul><li>Busca semântica.</li><li>Busca lexical/BM25.</li><li>Filtros por metadados.</li><li>Reranking dos candidatos.</li></ul>
+      <div class="callout ok"><b>Busca híbrida:</b> muito útil em código, normas e textos com siglas ou identificadores exatos.</div>
+    </div></article>
+
+    <article class="card slate span-6 searchable"><div class="head"><h2>🧪 Exemplo conceitual em Python</h2></div><div class="body">
+      <div class="codebox"><button class="copy">Copiar</button><pre><code>pergunta = "Qual a política de estágio?"
+chunks = buscar_documentos(pergunta, top_k=5)
+contexto = "\n\n".join(chunks)
+
+prompt = f"""
+Responda somente com base no contexto.
+Se não houver evidência, diga que não encontrou.
+
+CONTEXTO:
+{contexto}
+
+PERGUNTA:
+{pergunta}
+"""
+
+resposta = llm(prompt)</code></pre></div>
+    </div></article>
+  </div>
+
+  <h2 class="section-title" id="modelos">3. Modelos Open Weight e Proprietários</h2>
+  <div class="grid">
+    <article class="card gold span-6 searchable"><div class="head"><h2>🔓 Open Weight</h2></div><div class="body">
+      <ul><li>Controle de infraestrutura e dados.</li><li>Quantização e ajuste local.</li><li>Bom para pesquisa e cenários on-premise.</li><li>Exige serving, segurança e observabilidade.</li></ul>
+      <p><b>Exemplos de famílias:</b> Llama, Mistral/Mixtral, Qwen, Gemma e Phi.</p>
+      <div class="callout warn"><b>Importante:</b> open weight não significa automaticamente open source. Verifique a licença.</div>
+    </div></article>
+
+    <article class="card gold span-6 searchable"><div class="head"><h2>🔒 Proprietários / via API</h2></div><div class="body">
+      <ul><li>Menor esforço de infraestrutura.</li><li>Escala gerenciada.</li><li>Recursos multimodais e ferramentas.</li><li>Dependência de preço, limites e políticas do provedor.</li></ul>
+      <p><b>Fornecedores:</b> OpenAI, Google, Anthropic, Cohere e outros.</p>
+    </div></article>
+
+    <article class="card span-12 searchable"><div class="body"><div class="table-wrap"><table>
+      <thead><tr><th>Critério</th><th>Open Weight / Local</th><th>Proprietário / API</th></tr></thead>
+      <tbody>
+        <tr><td>Dados</td><td>Maior controle</td><td>Depende do contrato</td></tr>
+        <tr><td>Infraestrutura</td><td>Responsabilidade da equipe</td><td>Gerenciada pelo provedor</td></tr>
+        <tr><td>Customização</td><td>Alta</td><td>Variável</td></tr>
+        <tr><td>Custo</td><td>Hardware + operação</td><td>Normalmente por uso/tokens</td></tr>
+        <tr><td>Escala</td><td>Precisa ser projetada</td><td>Mais simples para o cliente</td></tr>
+      </tbody>
+    </table></div></div></article>
+  </div>
+
+  <h2 class="section-title" id="ajuste">4. Ajuste e Treinamento</h2>
+  <div class="grid">
+    <article class="card purple span-4 searchable"><div class="head"><h2>🎯 Fine-tuning</h2></div><div class="body"><p>Adapta o comportamento a tarefas, estilo e formatos específicos.</p><div class="callout warn"><b>Não use como banco de dados:</b> para fatos mutáveis, prefira RAG.</div></div></article>
+    <article class="card purple span-4 searchable"><div class="head"><h2>⚙️ PEFT / LoRA</h2></div><div class="body"><p>Ajusta pequena parcela dos parâmetros, reduzindo memória e custo.</p><div class="callout ok"><b>Bom para:</b> domínio, estilo ou tarefa bem definidos.</div></div></article>
+    <article class="card purple span-4 searchable"><div class="head"><h2>👍 RLHF / DPO</h2></div><div class="body"><p>Usam preferências humanas para alinhar o comportamento do modelo.</p><div class="callout"><b>Exemplo:</b> avaliadores escolhem entre respostas A e B e o modelo aprende a favorecer a melhor.</div></div></article>
+  </div>
+
+  <h2 class="section-title" id="avaliacao">5. Avaliação e Observabilidade</h2>
+  <div class="grid">
+    <article class="card green span-7 searchable"><div class="head"><h2>📊 Métricas</h2></div><div class="body"><div class="table-wrap"><table>
+      <thead><tr><th>Dimensão</th><th>Métricas / técnicas</th></tr></thead>
+      <tbody>
+        <tr><td>Qualidade</td><td>Accuracy, F1, ROUGE, avaliação humana, LLM-as-judge</td></tr>
+        <tr><td>Groundedness</td><td>Fidelidade às fontes e qualidade de citações</td></tr>
+        <tr><td>RAG</td><td>Recall@k, Precision@k, MRR, nDCG</td></tr>
+        <tr><td>Segurança</td><td>Prompt injection, vazamento de PII, violações</td></tr>
+        <tr><td>Performance</td><td>TTFT, tokens/s, p50/p95/p99</td></tr>
+        <tr><td>Custo</td><td>Custo por requisição, usuário e tarefa</td></tr>
+      </tbody>
+    </table></div></div></article>
+
+    <article class="card green span-5 searchable"><div class="head"><h2>🔭 Observabilidade</h2></div><div class="body">
+      <ul><li>Prompt/response com proteção de dados.</li><li>Tracing de ferramentas.</li><li>Versão de modelo e prompt.</li><li>Tokens e custo.</li><li>Latência e erros.</li><li>Feedback do usuário.</li></ul>
+    </div></article>
+  </div>
+
+  <h2 class="section-title" id="vetores">6. Bases Vetoriais e Busca Semântica</h2>
+  <div class="grid">
+    <article class="card red span-7 searchable"><div class="head"><h2>🗂️ Como funciona</h2></div><div class="body">
+      <div class="flow"><span>Texto</span><b class="arrow">→</b><span>Embedding</span><b class="arrow">→</b><span>Índice</span><b class="arrow">→</b><span>Similaridade</span><b class="arrow">→</b><span>Top-k</span></div>
+      <p><b>Tecnologias comuns:</b> FAISS, pgvector, Milvus, Qdrant, Pinecone, Weaviate e Chroma.</p>
+    </div></article>
+
+    <article class="card red span-5 searchable"><div class="head"><h2>🧠 Similaridade</h2></div><div class="body">
+      <ul><li><b>Cosseno</b></li><li><b>Produto interno</b></li><li><b>Euclidiana</b></li></ul>
+      <div class="callout warn"><b>Cuidado:</b> vetores não resolvem sozinhos autorização, validade temporal ou qualidade da fonte.</div>
+    </div></article>
+  </div>
+
+  <h2 class="section-title" id="agentes">7. Agentes, Ferramentas e MCP</h2>
+  <div class="grid">
+    <article class="card purple span-8 searchable"><div class="head"><h2>🤖 Loop de um agente</h2></div><div class="body">
+      <div class="arch">
+        <div class="node">Planejar<small>Decompor objetivo</small></div><div class="link">→</div>
+        <div class="node">Selecionar ferramenta<small>API, busca, código</small></div><div class="link">→</div>
+        <div class="node">Executar<small>Realizar ação</small></div>
+      </div>
+      <div class="arch" style="margin-top:10px">
+        <div class="node">Observar<small>Resultado e erros</small></div><div class="link">→</div>
+        <div class="node">Replanejar<small>Ajustar próximos passos</small></div><div class="link">→</div>
+        <div class="node">Entregar<small>Resposta + evidências</small></div>
+      </div>
+    </div></article>
+
+    <article class="card purple span-4 searchable"><div class="head"><h2>🔌 MCP e ferramentas</h2></div><div class="body">
+      <p>Protocolos e interfaces padronizadas podem expor ferramentas e recursos ao modelo.</p>
+      <div class="callout risk"><b>Risco:</b> agentes têm poder de ação. Use menor privilégio, confirmação e auditoria.</div>
+    </div></article>
+
+    <article class="card purple span-12 searchable"><div class="head"><h2>🧰 Agentic harnesses</h2></div><div class="body">
+      <p>Camada de execução que envolve o LLM com prompts, ferramentas, memória, políticas, retries, tracing e controles.</p>
+    </div></article>
+  </div>
+
+  <h2 class="section-title" id="local">8. Implantação Local e On-Premise</h2>
+  <div class="grid">
+    <article class="card orange span-7 searchable"><div class="head"><h2>🖥️ Componentes</h2></div><div class="body">
+      <div class="subgrid">
+        <div class="mini"><h3>Hardware</h3><p>GPU, VRAM, RAM, CPU e armazenamento.</p></div>
+        <div class="mini"><h3>Inferência</h3><p>vLLM, TGI, llama.cpp, Ollama.</p></div>
+        <div class="mini"><h3>Quantização</h3><p>FP16/BF16, INT8, 4-bit, GGUF.</p></div>
+        <div class="mini"><h3>API</h3><p>Auth, rate limit, streaming, logs e métricas.</p></div>
+      </div>
+    </div></article>
+
+    <article class="card orange span-5 searchable"><div class="head"><h2>💻 Exemplo com Ollama</h2></div><div class="body">
+      <div class="codebox"><button class="copy">Copiar</button><pre><code>ollama pull llama3.2
+
+ollama run llama3.2 \
+  "Explique embeddings para um aluno de graduação."</code></pre></div>
+    </div></article>
+
+    <article class="card orange span-12 searchable"><div class="head"><h2>📐 Memória: aproximação</h2></div><div class="body">
+      <div class="flow"><span>FP16 ≈ 2 bytes/parâmetro</span><span>INT8 ≈ 1 byte/parâmetro</span><span>4-bit ≈ 0,5 byte/parâmetro</span></div>
+      <div class="callout warn"><b>Memória real é maior:</b> KV cache, buffers, runtime, contexto e batching também consomem VRAM/RAM.</div>
+    </div></article>
+  </div>
+
+  <h2 class="section-title" id="otimizacao">9. Otimização de Inferência</h2>
+  <div class="grid">
+    <article class="card slate span-12 searchable"><div class="head"><h2>⚡ Técnicas</h2></div><div class="body"><div class="table-wrap"><table>
+      <thead><tr><th>Técnica</th><th>Benefício</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><td>Quantização</td><td>Menor memória</td><td>Possível perda de qualidade</td></tr>
+        <tr><td>KV cache</td><td>Evita recomputação</td><td>Consome memória</td></tr>
+        <tr><td>Continuous batching</td><td>Maior throughput</td><td>Mais complexidade</td></tr>
+        <tr><td>Prefix caching</td><td>Reutiliza prefixos</td><td>Depende de padrões recorrentes</td></tr>
+        <tr><td>Speculative decoding</td><td>Acelera geração</td><td>Mais componentes</td></tr>
+        <tr><td>Roteamento</td><td>Modelo menor para tarefas simples</td><td>Política de seleção precisa ser confiável</td></tr>
+      </tbody>
+    </table></div></div></article>
+  </div>
+
+  <h2 class="section-title" id="arquitetura">10. Arquitetura de Referência</h2>
+  <div class="grid">
+    <article class="card blue span-12 searchable"><div class="head"><h2>🏗️ Arquitetura corporativa</h2></div><div class="body">
+      <div class="arch">
+        <div class="node">Aplicação / UI<small>Web, mobile, IDE</small></div><div class="link">→</div>
+        <div class="node">Gateway de IA<small>Auth, quotas, políticas</small></div><div class="link">→</div>
+        <div class="node">Orquestração<small>Prompt, tools, RAG, memória</small></div>
+      </div>
+      <div class="arch" style="margin-top:10px">
+        <div class="node">LLM(s)<small>Local, API ou híbrido</small></div><div class="link">↔</div>
+        <div class="node">Conhecimento<small>Vetores, SQL, documentos</small></div><div class="link">↔</div>
+        <div class="node">Ferramentas<small>APIs e sistemas internos</small></div>
+      </div>
+    </div></article>
+  </div>
+
+  <h2 class="section-title" id="aplicacoes">11. Aplicações Comuns</h2>
+  <div class="grid">
+    <article class="card green span-12 searchable"><div class="head"><h2>🌍 Onde aplicar</h2></div><div class="body">
+      <div class="subgrid">
+        <div class="mini"><h3>💬 Assistentes</h3><p>Atendimento, FAQ, suporte interno.</p></div>
+        <div class="mini"><h3>📄 Documentos</h3><p>Resumo, extração, classificação.</p></div>
+        <div class="mini"><h3>👨‍💻 Software</h3><p>Código, testes, documentação.</p></div>
+        <div class="mini"><h3>🎓 Educação</h3><p>Tutoria e feedback formativo.</p></div>
+        <div class="mini"><h3>🔬 Pesquisa</h3><p>Triagem e síntese bibliográfica.</p></div>
+        <div class="mini"><h3>⚖️ Jurídico</h3><p>Busca e sumarização assistida.</p></div>
+        <div class="mini"><h3>🏢 Processos</h3><p>Automação e relatórios.</p></div>
+        <div class="mini"><h3>📈 BI</h3><p>Consulta em linguagem natural e SQL.</p></div>
+      </div>
+    </div></article>
+  </div>
+
+  <h2 class="section-title" id="boas-praticas">12. Boas Práticas, Segurança e Governança</h2>
+  <div class="grid">
+    <article class="card blue span-6 searchable"><div class="head"><h2>🛡️ Segurança</h2></div><div class="body">
+      <ul><li>Proteja secrets.</li><li>Aplique autenticação e autorização.</li><li>Defenda contra prompt injection.</li><li>Use sandbox para código.</li><li>Confirme ações irreversíveis.</li></ul>
+    </div></article>
+    <article class="card blue span-6 searchable"><div class="head"><h2>⚖️ Governança e LGPD</h2></div><div class="body">
+      <ul><li>Finalidade e base legal.</li><li>Minimização de PII.</li><li>Versionamento de modelos e prompts.</li><li>Auditoria de riscos e vieses.</li><li>Revisão humana em decisões de alto impacto.</li></ul>
+    </div></article>
+  </div>
+
+  <h2 class="section-title" id="roadmap">13. Roadmap de Estudo</h2>
+  <div class="grid">
+    <article class="card gold span-12 searchable"><div class="head"><h2>🧭 Trilha sugerida</h2></div><div class="body">
+      <div class="timeline">
+        <div class="step"><div class="n">1</div><b>Fundamentos</b><p>Tokens, embeddings, atenção.</p></div>
+        <div class="step"><div class="n">2</div><b>Prompting</b><p>Few-shot e structured output.</p></div>
+        <div class="step"><div class="n">3</div><b>RAG</b><p>Chunking, retrieval, reranking.</p></div>
+        <div class="step"><div class="n">4</div><b>Serving</b><p>APIs, latência, quantização.</p></div>
+        <div class="step"><div class="n">5</div><b>Agentes</b><p>Ferramentas, loops, MCP.</p></div>
+        <div class="step"><div class="n">6</div><b>LLMOps</b><p>Avaliação, tracing e custos.</p></div>
+      </div>
+      <div class="callout ok"><b>Projeto integrador:</b> construa um assistente RAG para documentos acadêmicos com citações, avaliação e execução local.</div>
+    </div></article>
+  </div>
+
+  <h2 class="section-title" id="glossario">14. Glossário</h2>
+  <section class="glossary searchable">
+    <div class="term"><b>Token</b>Unidade processada pelo modelo.</div>
+    <div class="term"><b>Embedding</b>Representação vetorial semântica.</div>
+    <div class="term"><b>Transformer</b>Arquitetura baseada em atenção.</div>
+    <div class="term"><b>Janela de contexto</b>Quantidade máxima de tokens considerados.</div>
+    <div class="term"><b>RAG</b>Recuperação de conteúdo externo antes da geração.</div>
+    <div class="term"><b>Fine-tuning</b>Ajuste dos pesos do modelo.</div>
+    <div class="term"><b>LoRA</b>Adaptação eficiente de baixa dimensão.</div>
+    <div class="term"><b>RLHF</b>Ajuste com feedback humano.</div>
+    <div class="term"><b>DPO</b>Otimização direta de preferências.</div>
+    <div class="term"><b>KV Cache</b>Cache para acelerar inferência.</div>
+    <div class="term"><b>Quantização</b>Redução da precisão numérica.</div>
+    <div class="term"><b>TTFT</b>Tempo até o primeiro token.</div>
+    <div class="term"><b>Reranker</b>Reordena documentos por relevância.</div>
+    <div class="term"><b>Agentic harness</b>Camada de execução de agentes.</div>
+  </section>
+
+  <h2 class="section-title" id="leituras">15. Leituras Recomendadas</h2>
+  <div class="grid">
+    <article class="card span-12 searchable"><div class="body">
+      <ul>
+        <li><b>Transformer:</b> “Attention Is All You Need”.</li>
+        <li><b>LoRA:</b> “LoRA: Low-Rank Adaptation of Large Language Models”.</li>
+        <li><b>DPO:</b> “Direct Preference Optimization”.</li>
+        <li><b>Serving:</b> documentação oficial de vLLM, Hugging Face TGI, llama.cpp e Ollama.</li>
+        <li><b>Bancos vetoriais:</b> documentação oficial de FAISS, pgvector, Milvus, Qdrant, Pinecone, Weaviate e Chroma.</li>
+        <li><b>Governança:</b> LGPD, gestão de riscos e segurança da informação.</li>
+      </ul>
+      <div class="callout warn"><b>Nota:</b> modelos, preços e limites mudam rapidamente. Para decisões de arquitetura, valide a documentação oficial mais recente.</div>
+    </div></article>
+  </div>
+
+  <footer class="footer">
+    <h2>LLMs: da linguagem à ação</h2>
+    <p>Uma solução robusta combina contexto, dados confiáveis, recuperação, ferramentas, avaliação, segurança, observabilidade, infraestrutura e governança.</p>
+    <div class="flow"><span>Explorar</span><span>Aprender</span><span>Construir</span><span>Avaliar</span><span>Impactar</span></div>
+  </footer>
+</main>
+
+<script>
+document.querySelectorAll('.copy').forEach(btn=>{
+  btn.addEventListener('click', async ()=>{
+    const code = btn.parentElement.querySelector('code').innerText;
+    try{
+      await navigator.clipboard.writeText(code);
+      const old=btn.textContent;
+      btn.textContent='Copiado ✓';
+      setTimeout(()=>btn.textContent=old,1200);
+    }catch(e){
+      btn.textContent='Selecione e copie';
+    }
+  });
+});
+
+const input=document.getElementById('search');
+input.addEventListener('input',()=>{
+  const q=input.value.trim().toLowerCase();
+  document.querySelectorAll('.searchable').forEach(el=>{
+    el.classList.toggle('hide', q && !el.innerText.toLowerCase().includes(q));
+  });
+});
+</script>
+</body>
+</html>
