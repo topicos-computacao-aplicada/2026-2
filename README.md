@@ -81,6 +81,7 @@ Mais detahes neste [link](hospedagem_local.md)
 
 - Disponível em https://github.com/topicos-computacao-aplicada/2026-1/blob/main/docs/5_skills_modern_dev.png
 - Conceitos de LLM neste [link](https://htmlpreview.github.io/?https://github.com/topicos-computacao-aplicada/2026-1/blob/main/html/infografico_llm_ai_engineering.html)
+- Resumo sobre Modelos LLM neste [link](https://htmlpreview.github.io/?https://github.com/topicos-computacao-aplicada/2026-1/blob/main/html/guia_modelos_llm_responsivo.html)
 - Conceitos, Técnicas e Ferramentas neste [link](https://htmlpreview.github.io/?https://github.com/topicos-computacao-aplicada/2026-1/blob/main/html/infografico_20_conceitos_ia_developers.html)
 
 ## Extra
