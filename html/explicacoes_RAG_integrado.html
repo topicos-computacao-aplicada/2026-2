@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pipeline RAG — Guia Completo dos 4 Blocos</title>
+
+<!-- Prism.js — tema claro -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+
+<style>
+  :root {
+    --bg:            #fafafa;
+    --card:          #ffffff;
+    --text:          #1f2328;
+    --text-muted:    #57606a;
+    --border:        #d0d7de;
+    --green:         #1a7f37;
+    --green-soft:    #dafbe1;
+    --yellow:        #9a6700;
+    --yellow-soft:   #fff8c5;
+    --red:           #cf222e;
+    --red-soft:      #ffebe9;
+    --blue:          #0969da;
+    --blue-soft:     #ddf4ff;
+    --code-bg:       #f6f8fa;
+    --shadow:        0 1px 3px rgba(27,31,36,0.04), 0 8px 24px rgba(27,31,36,0.06);
+    --sidebar-w:     280px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Layout: sidebar + main ──────────────── */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    padding: 32px 20px;
+    overflow-y: auto;
+    z-index: 100;
+  }
+
+  .sidebar-brand {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .sidebar-title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0 0 24px;
+    color: var(--text);
+  }
+
+  .sidebar nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    margin-bottom: 4px;
+    border-radius: 6px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.15s;
+    border-left: 3px solid transparent;
+  }
+
+  .sidebar nav a:hover {
+    background: var(--code-bg);
+  }
+
+  .sidebar nav a.active {
+    background: var(--code-bg);
+  }
+
+  .sidebar nav a .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .sidebar nav a.nav-1 { border-left-color: var(--blue); }
+  .sidebar nav a.nav-1 .dot { background: var(--blue); }
+  .sidebar nav a.nav-2 { border-left-color: #8250df; }
+  .sidebar nav a.nav-2 .dot { background: #8250df; }
+  .sidebar nav a.nav-3 { border-left-color: var(--green); }
+  .sidebar nav a.nav-3 .dot { background: var(--green); }
+  .sidebar nav a.nav-4 { border-left-color: #b85c00; }
+  .sidebar nav a.nav-4 .dot { background: #b85c00; }
+
+  .sidebar nav a.active.nav-1 { background: var(--blue-soft); }
+  .sidebar nav a.active.nav-2 { background: #fbefff; }
+  .sidebar nav a.active.nav-3 { background: var(--green-soft); }
+  .sidebar nav a.active.nav-4 { background: #fff4e5; }
+
+  .sidebar-divider {
+    margin: 20px 0;
+    border: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .sidebar-footer {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .main {
+    flex: 1;
+    margin-left: var(--sidebar-w);
+    max-width: calc(100vw - var(--sidebar-w));
+    padding: 48px 48px 96px;
+  }
+
+  .content {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  /* ── Blocos com cor temática ─────────────── */
+  .block {
+    margin-bottom: 96px;
+    scroll-margin-top: 24px;
+  }
+
+  .block-1 { --accent: var(--blue);    --accent-soft: var(--blue-soft); }
+  .block-2 { --accent: #8250df;        --accent-soft: #fbefff; }
+  .block-3 { --accent: var(--green);   --accent-soft: var(--green-soft); }
+  .block-4 { --accent: #b85c00;        --accent-soft: #fff4e5; }
+
+  .block-header {
+    padding-bottom: 20px;
+    margin-bottom: 32px;
+    border-bottom: 2px solid var(--accent);
+  }
+
+  .block-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .block-title {
+    margin: 0 0 8px;
+    font-size: 2rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .block-title code {
+    font-size: 1.75rem;
+    padding: 2px 10px;
+    background: var(--code-bg);
+    border-radius: 8px;
+    color: var(--accent);
+  }
+
+  .block-subtitle {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 1.02rem;
+  }
+
+  /* ── Seções dentro dos blocos ────────────── */
+  section.sub {
+    margin-bottom: 40px;
+  }
+
+  h2.sub-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 20px;
+    font-size: 1.4rem;
+    letter-spacing: -0.01em;
+  }
+
+  .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  h3 {
+    margin: 28px 0 12px;
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+
+  h4 {
+    margin: 24px 0 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 12px;
+  }
+
+  p { margin: 0 0 16px; }
+
+  a { color: var(--blue); }
+
+  strong { font-weight: 600; }
+
+  blockquote {
+    margin: 20px 0;
+    padding: 12px 20px;
+    border-left: 4px solid var(--border);
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* ── Código ───────────────────────────────── */
+  pre[class*="language-"] {
+    margin: 16px 0 24px !important;
+    padding: 20px 24px !important;
+    background: var(--code-bg) !important;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: auto;
+  }
+
+  code[class*="language-"] {
+    font-family: "SF Mono", "Cascadia Code", "Fira Code", Consolas, "Liberation Mono", monospace;
+    font-size: 14px;
+    color: var(--text) !important;
+    text-shadow: none !important;
+  }
+
+  .token.comment,
+  .token.prolog,
+  .token.doctype,
+  .token.cdata {
+    color: #6e7781;
+    font-style: italic;
+  }
+  .token.punctuation { color: #57606a; }
+  .token.property,
+  .token.tag,
+  .token.boolean,
+  .token.number,
+  .token.constant,
+  .token.symbol,
+  .token.deleted { color: #0550ae; }
+  .token.selector,
+  .token.attr-name,
+  .token.string,
+  .token.char,
+  .token.builtin,
+  .token.inserted { color: #0a7d33; }
+  .token.operator,
+  .token.entity,
+  .token.url { color: #cf222e; }
+  .token.atrule,
+  .token.attr-value,
+  .token.keyword { color: #cf222e; font-weight: 500; }
+  .token.function,
+  .token.class-name { color: #8250df; }
+  .token.regex,
+  .token.important,
+  .token.variable { color: #953800; }
+
+  :not(pre) > code {
+    padding: 2px 6px;
+    background: var(--code-bg);
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: "SF Mono", "Cascadia Code", Consolas, monospace;
+    color: #cf222e;
+  }
+
+  /* ── Tabelas ──────────────────────────────── */
+  .table-wrapper {
+    overflow-x: auto;
+    margin: 20px 0 24px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+
+  thead {
+    background: var(--code-bg);
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 12.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-muted);
+  }
+
+  td {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  tbody tr:first-child td { border-top: none; }
+  tbody tr:hover { background: #f6f8fa; }
+
+  td code {
+    font-size: 13px;
+    padding: 1px 5px;
+    background: var(--code-bg);
+    border-radius: 4px;
+    color: #cf222e;
+  }
+
+  /* ── Callouts ─────────────────────────────── */
+  .callout {
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+    border-left: 4px solid;
+    font-size: 15px;
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  .callout.tip {
+    background: var(--blue-soft);
+    border-left-color: var(--blue);
+  }
+  .callout.tip::before {
+    content: "💡 ";
+    font-weight: 700;
+  }
+
+  .callout.note {
+    background: var(--yellow-soft);
+    border-left-color: var(--yellow);
+  }
+  .callout.note::before {
+    content: "📌 ";
+    font-weight: 700;
+  }
+
+  .callout.warn {
+    background: var(--red-soft);
+    border-left-color: var(--red);
+  }
+  .callout.warn::before {
+    content: "⚠️ ";
+    font-weight: 700;
+  }
+
+  .callout.success {
+    background: var(--green-soft);
+    border-left-color: var(--green);
+  }
+  .callout.success::before {
+    content: "✅ ";
+    font-weight: 700;
+  }
+
+  /* ── Diagrama ASCII ───────────────────────── */
+  .diagram {
+    padding: 20px 24px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: "SF Mono", "Cascadia Code", Consolas, monospace;
+    font-size: 13.5px;
+    line-height: 1.9;
+    color: var(--text);
+    overflow-x: auto;
+    margin: 20px 0;
+    white-space: pre;
+  }
+
+  /* ── Listas ───────────────────────────────── */
+  ul, ol {
+    margin: 0 0 20px;
+    padding-left: 28px;
+  }
+
+  li { margin-bottom: 8px; }
+  li::marker { color: var(--accent); }
+
+  /* ── Destaque de conceito ─────────────────── */
+  .concept {
+    padding: 16px 20px;
+    margin: 20px 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+  }
+
+  .concept strong { color: var(--accent); }
+
+  /* ── Back to top ──────────────────────────── */
+  .back-top {
+    display: inline-block;
+    margin-top: 24px;
+    padding: 8px 16px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.15s;
+  }
+
+  .back-top:hover { transform: translateY(-2px); }
+
+  /* ── Hero / intro ─────────────────────────── */
+  .hero {
+    padding: 40px;
+    margin-bottom: 64px;
+    background: linear-gradient(135deg, var(--card) 0%, var(--code-bg) 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+  }
+
+  .hero h1 {
+    margin: 0 0 16px;
+    font-size: 2.4rem;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .hero p {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .pipeline-diagram {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: stretch;
+    margin-top: 24px;
+  }
+
+  .pipeline-node {
+    flex: 1;
+    min-width: 160px;
+    padding: 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    border-top: 4px solid;
+  }
+
+  .pipeline-node.n1 { border-top-color: var(--blue); }
+  .pipeline-node.n2 { border-top-color: #8250df; }
+  .pipeline-node.n3 { border-top-color: var(--green); }
+  .pipeline-node.n4 { border-top-color: #b85c00; }
+
+  .pipeline-node-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .pipeline-node-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* ── Toggle mobile ────────────────────────── */
+  .menu-toggle {
+    display: none;
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 200;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+  }
+
+  @media (max-width: 900px) {
+    .menu-toggle { display: block; }
+    .sidebar {
+      transform: translateX(-100%);
+      transition: transform 0.25s;
+      width: 260px;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .main {
+      margin-left: 0;
+      max-width: 100vw;
+      padding: 72px 20px 64px;
+    }
+    .hero { padding: 24px; }
+    .hero h1 { font-size: 1.7rem; }
+    .block-title { font-size: 1.5rem; }
+    .block-title code { font-size: 1.3rem; }
+    h2.sub-title { font-size: 1.15rem; }
+    pre[class*="language-"] { padding: 16px !important; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+
+<div class="layout">
+
+  <!-- ── SIDEBAR ─────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">Pipeline RAG</div>
+    <div class="sidebar-title">Guia Completo dos 4 Blocos</div>
+
+    <nav>
+      <a href="#intro" class="nav-1"><span class="dot"></span>Introdução</a>
+      <a href="#block-1" class="nav-1"><span class="dot"></span>1. Ingestion</a>
+      <a href="#block-2" class="nav-2"><span class="dot"></span>2. Indexing</a>
+      <a href="#block-3" class="nav-3"><span class="dot"></span>3. Retrieval</a>
+      <a href="#block-4" class="nav-4"><span class="dot"></span>4. Generation</a>
+    </nav>
+
+    <hr class="sidebar-divider">
+    <div class="sidebar-footer">
+      Explicações de cada etapa do RAG. Baseado no <a href="https://github.com/llmfromzerotohero/rag-foundations-course">treinamento RAG</a> do LLM do Zero.
+    </div>
+  </aside>
+
+  <!-- ── MAIN ─────────────────────────────────── -->
+  <main class="main">
+    <div class="content">
+
+      <!-- Hero -->
+      <div class="hero" id="intro">
+        <h1>Pipeline RAG — Guia Completo</h1>
+        <p>Entenda, bloco a bloco, como transformar documentos brutos em respostas fundamentadas usando LLMs locais. Do PDF sujo à resposta com citação de fonte.</p>
+
+        <div class="pipeline-diagram">
+          <div class="pipeline-node n1">
+            <div class="pipeline-node-title">Bloco 1</div>
+            <div class="pipeline-node-name">Ingestion</div>
+          </div>
+          <div class="pipeline-node n2">
+            <div class="pipeline-node-title">Bloco 2</div>
+            <div class="pipeline-node-name">Indexing</div>
+          </div>
+          <div class="pipeline-node n3">
+            <div class="pipeline-node-title">Bloco 3</div>
+            <div class="pipeline-node-name">Retrieval</div>
+          </div>
+          <div class="pipeline-node n4">
+            <div class="pipeline-node-title">Bloco 4</div>
+            <div class="pipeline-node-name">Generation</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- BLOCO 1: INGESTION                          -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="block block-1" id="block-1">
+
+        <header class="block-header">
+          <span class="block-badge">Bloco 1 · Ingestion</span>
+          <h1 class="block-title">Entendendo o <code>1_ingestion.py</code></h1>
+          <p class="block-subtitle">Do arquivo bruto ao <em>chunk</em> rastreável — uma linha de montagem em 4 etapas.</p>
+        </header>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">1</span> A estrutura de dados: <code>Chunk</code></h2>
+
+          <p>Este arquivo é o <strong>primeiro bloco de um pipeline RAG</strong>. Antes de um modelo conseguir "consultar" seus documentos, alguém precisa transformar PDFs/TXTs em pedaços pequenos de texto (os <em>chunks</em>) que possam ser vetorizados e buscados depois.</p>
+
+          <p>Pense nele como uma <strong>linha de montagem em 4 etapas</strong>:</p>
+
+          <div class="diagram">[Arquivos brutos]  →  [Limpeza]  →  [Chunking]  →  [Lista de Chunks]</div>
+
+          <pre><code class="language-python">@dataclass
+class Chunk:
+    id: str          # ex: "manual.pdf_12"
+    text: str        # o texto em si
+    source: str      # caminho do arquivo original
+    page: int        # número da página
+    chunk_idx: int   # índice sequencial do chunk
+    doc_hash: str    # SHA-256 do arquivo (governança)</code></pre>
+
+          <div class="concept">
+            <strong>Por que isso importa?</strong> Um chunk não é só texto — ele precisa saber <em>de onde veio</em> (rastreabilidade). Sem isso, não dá para citar fontes na resposta final. O <code>doc_hash</code> é um bônus de <strong>governança</strong>: se o PDF mudar, o hash muda, e você sabe que aquele chunk está obsoleto.
+          </div>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">2</span> Limpeza de texto: <code>clean_text()</code></h2>
+
+          <p>PDFs são <strong>notoriamente sujos</strong>. Colunas viram texto embaralhado, hífens quebram palavras, e sobram caracteres invisíveis. A função aplica 5 tratamentos em sequência:</p>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>Etapa</th><th>O que faz</th><th>Exemplo</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>1. Normalização Unicode (NFKC)</td><td>Unifica caracteres "parecidos"</td><td><code>ﬁ</code> (ligadura) → <code>fi</code></td></tr>
+                <tr><td>2. Remove soft-hyphens</td><td>Tira hífens invisíveis</td><td><code>infor­mação</code> → <code>informação</code></td></tr>
+                <tr><td>3. Junta palavras quebradas</td><td><code>infor-\nmação</code> → <code>informação</code></td><td>regex <code>(\w)-\s*\n\s*(\w)</code></td></tr>
+                <tr><td>4. Colapsa espaços</td><td><code>"a    b   c"</code> → <code>"a b c"</code></td><td>—</td></tr>
+                <tr><td>5. Normaliza quebras de linha</td><td><code>\n\n\n\n</code> → <code>\n\n</code></td><td>evita "buracos"</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout tip">
+            <p><strong>A ordem importa.</strong> Se você colapsasse espaços antes de juntar palavras com hífen, a regex <code>-\s*\n\s*</code> deixaria de funcionar porque o <code>\n</code> já teria virado espaço.</p>
+          </div>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">3</span> Leitores de documentos</h2>
+
+          <p>Três funções com <strong>a mesma assinatura</strong> (<code>Path → list[tuple[str, int]]</code>), o que permite tratá-las de forma intercambiável:</p>
+
+          <ul>
+            <li><strong><code>load_pdf</code></strong>: itera <strong>página por página</strong>, retornando <code>(texto_limpo, num_página)</code>. Páginas em branco são descartadas.</li>
+            <li><strong><code>load_text</code></strong>: para <code>.txt</code> e <code>.md</code>, lê tudo como uma única "página 1".</li>
+            <li><strong><code>load_document</code></strong>: é um <strong>roteador</strong> via dicionário:</li>
+          </ul>
+
+          <pre><code class="language-python">loaders = {".pdf": load_pdf, ".txt": load_text, ".md": load_text}
+return loaders[suffix](path)</code></pre>
+
+          <p>Esse padrão (dicionário de funções) é mais limpo que um <code>if/elif</code> gigante e <strong>fácil de estender</strong>: adicionar <code>.docx</code> é só uma linha.</p>
+
+          <p><code>compute_hash()</code> complementa: lê o arquivo em blocos de 8 KB e calcula o SHA-256. Ler em streaming evita carregar um PDF de 500 MB inteiro na memória.</p>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">4</span> O coração: <code>split_into_chunks()</code></h2>
+
+          <p>Aqui é onde a <strong>janela deslizante</strong> acontece. A ideia é dividir o texto em pedaços de tamanho fixo, mas com uma <strong>sobreposição</strong> entre eles:</p>
+
+          <div class="diagram">chunk_size    = 500
+chunk_overlap = 100
+step          = 400  (= 500 - 100)
+
+[------ chunk 0 ------]
+        [------ chunk 1 ------]
+                [------ chunk 2 ------]</div>
+
+          <div class="callout note">
+            <p><strong>Por que sobrepor?</strong> Porque a fronteira entre dois chunks pode cortar uma frase no meio. Com sobreposição, a ideia que ficou "pela metade" no chunk anterior aparece inteira no próximo. É uma rede de segurança contra perda de contexto.</p>
+          </div>
+
+          <pre><code class="language-python">start = 0
+while start < len(text):
+    end = start + cfg.chunk_size
+    chunk_text = text[start:end].strip()
+    if len(chunk_text) >= cfg.min_chunk_size:  # descarta migalhas
+        chunks.append(Chunk(...))
+    start += step   # avança MENOS que chunk_size → sobreposição</code></pre>
+
+          <ul>
+            <li><code>min_chunk_size</code> filtra "sobras" do fim do texto — chunks de 30 caracteres são ruído para o retriever.</li>
+            <li><code>doc_chunk_offset</code> permite que o <code>chunk_idx</code> continue numerando entre páginas do mesmo documento.</li>
+          </ul>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">5</span> Orquestrador: <code>ingest_directory()</code></h2>
+
+          <p>Para cada arquivo suportado na pasta: calcula o hash → carrega páginas → chunking → carimba o hash → acumula tudo em <code>all_chunks</code>.</p>
+
+          <p><strong>Pontos de robustez:</strong></p>
+          <ul>
+            <li><code>try/except</code> por arquivo → um PDF corrompido <strong>não derruba</strong> o pipeline inteiro.</li>
+            <li>Se o diretório não existe, <code>raise FileNotFoundError</code> (falha explícita).</li>
+            <li>Se não há arquivos, retorna <code>[]</code> com aviso amarelo — não é erro, é aviso.</li>
+          </ul>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">6</span> Execução standalone</h2>
+
+          <p>Permite rodar o arquivo isoladamente:</p>
+
+          <pre><code class="language-bash">python 1_ingestion.py</code></pre>
+
+          <p>Procura a pasta <code>../data</code>, processa tudo e imprime uma <strong>tabela Rich</strong> com os 10 primeiros chunks (ID, fonte, página, tamanho, prévia). É uma forma rápida de inspecionar visualmente a qualidade do chunking antes de seguir para o próximo bloco.</p>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">✦</span> Arquitetura</h2>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Camada</th><th>Função</th><th>Responsabilidade</th></tr></thead>
+              <tbody>
+                <tr><td>Dados</td><td><code>Chunk</code></td><td>Contrato do que circula no pipeline</td></tr>
+                <tr><td>Pré-processamento</td><td><code>clean_text</code></td><td>Padronização</td></tr>
+                <tr><td>I/O</td><td><code>load_*</code></td><td>Abstrair formato do arquivo</td></tr>
+                <tr><td>Transformação</td><td><code>split_into_chunks</code></td><td>Algoritmo de chunking</td></tr>
+                <tr><td>Orquestração</td><td><code>ingest_directory</code></td><td>Fluxo de ponta a ponta</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout success">
+            <p><strong>Resumo em uma frase:</strong> este módulo transforma uma pasta de PDFs/TXTs sujos em uma lista estruturada de <code>Chunk</code>s limpos, rastreáveis e com sobreposição — o "combustível" que o próximo bloco do pipeline vai consumir.</p>
+          </div>
+        </section>
+
+        <a href="#block-1" class="back-top">↑ Voltar ao topo do Bloco 1</a>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- BLOCO 2: INDEXING                           -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="block block-2" id="block-2">
+
+        <header class="block-header">
+          <span class="block-badge">Bloco 2 · Indexing</span>
+          <h1 class="block-title">Entendendo o <code>2_indexing.py</code></h1>
+          <p class="block-subtitle">De <em>chunks</em> de texto a vetores buscáveis por significado — o "cérebro semântico" do pipeline.</p>
+        </header>
+
+        <section class="sub">
+          <p>Este é o <strong>Bloco 2 do pipeline RAG</strong>: pega os <em>chunks</em> do Bloco 1 e os transforma em <strong>vetores numéricos</strong> que o ChromaDB pode buscar por similaridade semântica.</p>
+
+          <div class="diagram">[Chunks de texto]  →  [Ollama: texto → vetor]  →  [ChromaDB: vetor + metadata]</div>
+
+          <p>O conceito central é o <strong>embedding</strong>:</p>
+
+          <blockquote>Embeddings são representações matemáticas de significado. Textos semanticamente similares ficam "próximos" no espaço vetorial, permitindo busca por relevância, não por palavras-chave.</blockquote>
+
+          <p><code>"cachorro"</code> e <code>"cão"</code> não têm letra em comum na busca tradicional, mas em espaço vetorial ficam <strong>vizinhos</strong>.</p>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">1</span> O problema dos imports: números em nomes de arquivo</h2>
+
+          <pre><code class="language-python">try:
+    from ingestion import Chunk
+except ModuleNotFoundError:
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent))
+    from importlib import import_module
+    _m = import_module("1_ingestion")
+    Chunk = _m.Chunk</code></pre>
+
+          <p><strong>Por que esse rodeio?</strong> Porque <code>1_ingestion.py</code> <strong>começa com número</strong> — e <code>import 1_ingestion</code> é erro de sintaxe. Saídas: tentar <code>from ingestion import Chunk</code>; senão, usar <code>import_module("1_ingestion")</code> que aceita strings em runtime.</p>
+
+          <div class="callout tip">
+            <p><strong>Lição:</strong> Python não "sabe" que <code>1_</code> é prefixo de ordenação — é só texto. Quem contorna isso é o código.</p>
+          </div>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">2</span> Cliente ChromaDB: <code>get_chroma_client()</code></h2>
+
+          <pre><code class="language-python">def get_chroma_client(cfg: ChromaConfig = chroma_cfg) -> chromadb.PersistentClient:
+    Path(cfg.persist_dir).mkdir(parents=True, exist_ok=True)
+    client = chromadb.PersistentClient(
+        path=cfg.persist_dir,
+        settings=Settings(anonymized_telemetry=False),
+    )
+    return client</code></pre>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Linha</th><th>O que faz</th></tr></thead>
+              <tbody>
+                <tr><td><code>mkdir(parents=True, exist_ok=True)</code></td><td>Cria a pasta de persistência; <code>exist_ok=True</code> evita erro se já houver</td></tr>
+                <tr><td><code>PersistentClient(path=...)</code></td><td>Abre um <strong>banco em disco</strong> — os vetores <strong>continuam lá</strong> se o processo morrer</td></tr>
+                <tr><td><code>anonymized_telemetry=False</code></td><td>Desliga telemetria do ChromaDB (privacidade)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout note">
+            <p><strong>Contraste:</strong> <code>chromadb.Client()</code> (em memória) <strong>perde tudo</strong> ao fechar o processo. <code>PersistentClient</code> é a escolha correta para produção.</p>
+          </div>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">3</span> A coleção: <code>get_or_create_collection()</code></h2>
+
+          <pre><code class="language-python">collection = client.get_or_create_collection(
+    name=cfg.collection_name,
+    metadata={"hnsw:space": cfg.distance_metric},
+)</code></pre>
+
+          <p>Uma <strong>collection</strong> no ChromaDB é o equivalente a uma "tabela" em SQL. O detalhe crítico é <code>metadata</code>:</p>
+
+          <pre><code class="language-python">{"hnsw:space": "cosine"}   # ou "l2", ou "ip"</code></pre>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Métrica</th><th>Nome</th><th>Quando usar</th></tr></thead>
+              <tbody>
+                <tr><td><code>cosine</code></td><td>Similaridade de cosseno</td><td><strong>Padrão em RAG</strong> — mede ângulo, ignora magnitude</td></tr>
+                <tr><td><code>l2</code></td><td>Distância euclidiana</td><td>Sensível à magnitude; raramente ideal para texto</td></tr>
+                <tr><td><code>ip</code></td><td>Inner product</td><td>Para modelos treinados com essa métrica</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout warn">
+            <p><strong>Aviso:</strong> essa <code>metadata</code> só é aplicada na <strong>primeira criação</strong> da collection. Se você mudar <code>distance_metric</code> depois, o ChromaDB <strong>ignora</strong> — é preciso apagar a pasta de persistência ou renomear a collection.</p>
+          </div>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">4</span> O coração: <code>index_chunks()</code></h2>
+
+          <h3>4.1 Guarda de vazio</h3>
+
+          <pre><code class="language-python">if not chunks:
+    console.print("[yellow]⚠ Nenhum chunk para indexar.[/yellow]")
+    return 0</code></pre>
+
+          <p>Retornar <code>0</code> permite ao chamador usar o retorno numericamente sem checar <code>None</code>. Fail-fast elegante.</p>
+
+          <h3>4.2 Barra de progresso com Rich</h3>
+
+          <pre><code class="language-python">with Progress(
+    SpinnerColumn(),
+    TextColumn("[progress.description]{task.description}"),
+    BarColumn(),
+    TaskProgressColumn(),
+    console=console,
+) as progress:
+    task = progress.add_task("Indexando...", total=len(chunks))</code></pre>
+
+          <p>Embeddings podem levar <strong>minutos</strong> com centenas de chunks — sem feedback, o usuário acha que travou.</p>
+
+          <h3>4.3 Batching — a decisão mais importante</h3>
+
+          <pre><code class="language-python">for i in range(0, len(chunks), batch_size):
+    batch = chunks[i : i + batch_size]
+    batch_texts = [c.text for c in batch]
+    batch_embeddings = get_embeddings(batch_texts)</code></pre>
+
+          <p><strong>Por que não indexar tudo de uma vez?</strong> Com 1.000 chunks: memória estoura, timeout perde tudo, sem feedback. Com <code>batch_size=50</code>:</p>
+
+          <ul>
+            <li>Pico de memória <strong>50× menor</strong>.</li>
+            <li>Se o batch 12 falhar, você só <strong>perdeu 50 chunks</strong>.</li>
+            <li>Barra de progresso anda a cada ~1–2 segundos.</li>
+            <li>Chamadas HTTP ao Ollama têm payloads menores.</li>
+          </ul>
+
+          <h3>4.4 O <code>upsert</code> — coração da indexação</h3>
+
+          <pre><code class="language-python">collection.upsert(
+    ids=[c.id for c in batch],
+    embeddings=batch_embeddings,
+    documents=batch_texts,
+    metadatas=[...],
+)</code></pre>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Campo</th><th>O que é</th><th>Papel no RAG</th></tr></thead>
+              <tbody>
+                <tr><td><code>ids</code></td><td><code>"manual.pdf_12"</code></td><td>Chave primária. Permite atualizar/deletar sem duplicar</td></tr>
+                <tr><td><code>embeddings</code></td><td><code>[0.021, -0.134, ...]</code></td><td>O <strong>vetor</strong> de significado. Base da busca</td></tr>
+                <tr><td><code>documents</code></td><td>O texto original</td><td>Retornado na busca — o LLM vai ler isso</td></tr>
+                <tr><td><code>metadatas</code></td><td>Dicts com source, page, etc.</td><td>Permite <strong>filtrar</strong> a busca</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout tip">
+            <p><strong>Redundância proposital:</strong> o texto aparece <strong>duas vezes</strong> — como <code>embeddings</code> (busca) e como <code>documents</code> (leitura). O primeiro é matemática; o segundo é o que o LLM vai ler. Ambos são necessários.</p>
+          </div>
+
+          <h3>4.5 <code>upsert</code> vs <code>add</code></h3>
+
+          <ul>
+            <li><code>add</code>: <strong>falha</strong> se o <code>id</code> já existe.</li>
+            <li><code>upsert</code>: <strong>sobrescreve</strong> se existe, insere se não.</li>
+          </ul>
+
+          <p>Essencial em pipelines <strong>re-executáveis</strong>. Casa com o <code>doc_hash</code> do Bloco 1: se o PDF mudou, o hash muda, e o <code>upsert</code> <strong>substitui</strong> os chunks antigos.</p>
+
+          <h3>4.6 Metadata de governança</h3>
+
+          <pre><code class="language-python">metadatas=[{
+    "source": c.source,
+    "page": c.page,
+    "chunk_idx": c.chunk_idx,
+    "doc_hash": c.doc_hash,
+    "status": "vigente",
+    "version": "v1.0"
+} for c in batch]</code></pre>
+
+          <p>Os dois últimos campos são <strong>governança de dados</strong>:</p>
+          <ul>
+            <li><code>status: "vigente"</code> — permite marcar chunks como obsoletos sem deletar.</li>
+            <li><code>version: "v1.0"</code> — rastreia qual iteração gerou o chunk.</li>
+          </ul>
+
+          <p>Isso viabiliza operações como:</p>
+
+          <pre><code class="language-python"># "Só responda com base em documentos vigentes"
+collection.query(..., where={"status": "vigente"})</code></pre>
+
+          <div class="callout note">
+            <p><strong>Ponto de atenção:</strong> o <code>doc_hash</code> é incompleto. Se o chunking mudou (chunk_size 500 → 300), os chunks antigos <strong>não são sobrescritos</strong> — o <code>id</code> muda e eles ficam como lixo no banco.</p>
+          </div>
+
+          <h3>4.7 Contagem final</h3>
+
+          <pre><code class="language-python">total = collection.count()
+console.print(f"[green]✓ Indexação concluída! Total na coleção: {total}[/green]")
+return total</code></pre>
+
+          <p><code>collection.count()</code> retorna o <strong>total acumulado</strong>. Se você indexou 500 mas <code>count()</code> retornou 700, há <strong>chunks órfãos</strong> de execuções anteriores.</p>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">5</span> Execução standalone</h2>
+
+          <pre><code class="language-python">if __name__ == "__main__":
+    from importlib import import_module
+    ingestion = import_module("1_ingestion")
+    ingest_directory = ingestion.ingest_directory
+    from rich.panel import Panel
+
+    console.print(Panel.fit(
+        "[bold cyan]BLOCO 2: Embeddings e Indexação[/bold cyan]\n"
+        "Stack: Ollama (nomic-embed-text) + ChromaDB",
+        border_style="cyan",
+    ))
+
+    chunks = ingest_directory(DATA_DIR)
+    if not chunks:
+        raise SystemExit(1)
+
+    client = get_chroma_client()
+    collection = get_or_create_collection(client)
+    
+    index_chunks(chunks, collection)</code></pre>
+
+          <p>Esse bloco <strong>encadeia os dois blocos do pipeline</strong> em um único comando:</p>
+
+          <pre><code class="language-bash">python 2_indexing.py</code></pre>
+
+          <div class="diagram">1. ingest_directory(DATA_DIR)  ←  Bloco 1 roda inteiro
+   ↓
+2. get_chroma_client()         ←  Abre (ou cria) o banco
+   ↓
+3. get_or_create_collection()  ←  Abre (ou cria) a collection
+   ↓
+4. index_chunks(chunks, coll)  ←  Loop de embeddings + upsert</div>
+
+          <p><code>raise SystemExit(1)</code> é convenção Unix para "falha", capturável em CI/CD.</p>
+
+          <div class="callout tip">
+            <p><strong>Boa prática ausente:</strong> se <code>get_embeddings</code> falhar (Ollama offline), o <code>raise</code> propaga erro técnico cru. Um <code>try/except</code> com mensagem amigável seria melhor.</p>
+          </div>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">6</span> Arquitetura</h2>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Camada</th><th>Função</th><th>Responsabilidade</th></tr></thead>
+              <tbody>
+                <tr><td>Persistência</td><td><code>get_chroma_client</code></td><td>Abre o banco em disco</td></tr>
+                <tr><td>Abstração</td><td><code>get_or_create_collection</code></td><td>Agrupa vetores + define métrica</td></tr>
+                <tr><td>Transformação</td><td><code>get_embeddings</code></td><td>Texto → vetor (via Ollama)</td></tr>
+                <tr><td>Orquestração</td><td><code>index_chunks</code></td><td>Batching + upsert + progresso</td></tr>
+                <tr><td>Execução</td><td><code>__main__</code></td><td>Encadeia Bloco 1 → Bloco 2</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">✦</span> Resumo em uma frase</h2>
+
+          <div class="callout success">
+            <p><strong>Este módulo transforma a lista de <code>Chunk</code>s do Bloco 1 em uma coleção ChromaDB persistente, onde cada chunk vira <code>{id, vetor, texto, metadata}</code>, permitindo ao Bloco 3 responder perguntas como "quais trechos são semanticamente mais próximos da pergunta do usuário?".</strong></p>
+          </div>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">⚠</span> Possíveis melhorias</h2>
+
+          <ol>
+            <li><strong>Idempotência da métrica de distância</strong> — <code>hnsw:space</code> só é lido na criação. Vale um <code>try/except</code> verificando se a collection existente tem a métrica esperada.</li>
+            <li><strong>Chunks órfãos</strong> — quando <code>chunk_size</code> muda, os antigos ficam no banco. Um mecanismo de "limpeza por <code>doc_hash</code> obsoleto" manteria o índice enxuto.</li>
+            <li><strong>Falha no meio do batch</strong> — sem retry, um erro no batch 5 deixa os batches 0-4 gravados mas o trabalho incompleto.</li>
+            <li><strong><code>status</code>/<code>version</code> hardcoded</strong> — deveria vir do <code>config.py</code>.</li>
+          </ol>
+        </section>
+
+        <a href="#block-2" class="back-top">↑ Voltar ao topo do Bloco 2</a>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- BLOCO 3: RETRIEVAL                          -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="block block-3" id="block-3">
+
+        <header class="block-header">
+          <span class="block-badge">Bloco 3 · Retrieval</span>
+          <h1 class="block-title">Entendendo o <code>3_retrieval.py</code></h1>
+          <p class="block-subtitle">A pergunta encontra os documentos — busca vetorial, filtros e re-ranking.</p>
+        </header>
+
+        <section class="sub">
+          <p>Este é o <strong>Bloco 3 do pipeline RAG</strong>: o momento em que a pergunta do usuário finalmente "encontra" os documentos. Pense nele como o <strong>caixa de uma biblioteca</strong>:</p>
+
+          <div class="diagram">[Pergunta em texto]  →  [Vira vetor]  →  [Busca os vizinhos mais próximos]  →  [Top-K chunks]
+                                                                                           ↓
+                                                                          (opcional) Re-ranking</div>
+
+          <blockquote>A busca vetorial encontra documentos por SIGNIFICADO, não por palavras-chave.</blockquote>
+
+          <p>Se o usuário pergunta <em>"Quais são os direitos dos funcionários?"</em>, o sistema <strong>não</strong> procura a palavra "direitos" literalmente — procura chunks cujo <strong>vetor</strong> está próximo. Um chunk que diga <em>"os colaboradores têm garantidos os seguintes benefícios…"</em> pode ser retornado mesmo sem palavras em comum.</p>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">1</span> O tipo <code>RetrievedChunk</code></h2>
+
+          <pre><code class="language-python">@dataclass
+class RetrievedChunk:
+    id: str
+    text: str
+    source: str
+    page: int
+    distance: float
+    score: float</code></pre>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Campo</th><th><code>Chunk</code> (B1)</th><th><code>RetrievedChunk</code> (B3)</th></tr></thead>
+              <tbody>
+                <tr><td><code>id</code>, <code>text</code>, <code>source</code>, <code>page</code></td><td>✅</td><td>✅</td></tr>
+                <tr><td><code>chunk_idx</code>, <code>doc_hash</code></td><td>✅</td><td>❌</td></tr>
+                <tr><td><code>distance</code></td><td>❌</td><td>✅</td></tr>
+                <tr><td><code>score</code></td><td>❌</td><td>✅</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p><strong>Por que dois tipos?</strong> O <code>Chunk</code> é o dado <em>em repouso</em> (pré-indexação); o <code>RetrievedChunk</code> é o dado <em>em movimento</em> (resultado de uma consulta), carregando informação que <strong>só existe após a busca</strong>.</p>
+
+          <div class="callout tip">
+            <p><strong>Distinção:</strong> <code>distance</code> e <code>score</code> são duas faces da moeda. O ChromaDB devolve <strong>distância</strong> (menor = melhor); o <code>score</code> é o inverso convertido para "similaridade" (maior = melhor).</p>
+          </div>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">2</span> <code>search()</code> — o coração</h2>
+
+          <h3>2.1 Vetorizar a pergunta</h3>
+
+          <pre><code class="language-python">query_embedding = get_single_embedding(query)</code></pre>
+
+          <p>Simetria fundamental do RAG: <strong>a pergunta e os documentos precisam ser vetorizados pelo mesmo modelo</strong>.</p>
+
+          <h3>2.2 A consulta ao ChromaDB</h3>
+
+          <pre><code class="language-python">k_initial = cfg.top_k * 5 if cfg.rerank else cfg.top_k
+n_results = min(k_initial, collection.count())
+
+if n_results == 0:
+    return []
+
+results = collection.query(
+    query_embeddings=[query_embedding],
+    n_results=n_results,
+    where=where,
+    include=["documents", "metadatas", "distances"],
+)</code></pre>
+
+          <h4>(a) Buscar mais quando for re-rankear</h4>
+
+          <p>Re-ranking só compensa com margem. Se o usuário quer <code>top_k=5</code>:</p>
+          <ul>
+            <li><strong>Sem rerank</strong>: peça 5.</li>
+            <li><strong>Com rerank</strong>: peça 25 ao Chroma → Cross-Encoder refina → 5 melhores.</li>
+          </ul>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Estágio</th><th>Objetivo</th><th>Sacrifício</th><th>Velocidade</th></tr></thead>
+              <tbody>
+                <tr><td>1. Vector search</td><td><strong>Recall</strong> alto</td><td>Precisão menor</td><td>Milissegundos</td></tr>
+                <tr><td>2. Cross-Encoder</td><td><strong>Precisão</strong> alta</td><td>Custo computacional</td><td>Centenas de ms</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4>(b) Nunca pedir mais do que existe</h4>
+
+          <pre><code class="language-python">n_results = min(k_initial, collection.count())</code></pre>
+
+          <p>Se a coleção tem 12 chunks e você pede 25, o ChromaDB <strong>lança erro</strong>. O <code>min()</code> evita o problema.</p>
+
+          <h4>(c) O filtro <code>where</code> — busca híbrida</h4>
+
+          <pre><code class="language-python">search("direitos", collection, where={"status": "vigente"})
+search("férias", collection, where={"page": {"$gte": 10}})</code></pre>
+
+          <p>Isso transforma a busca vetorial pura em <strong>busca híbrida</strong>: <em>"os chunks mais similares, MAS apenas entre os vigentes e na página ≥ 10"</em>.</p>
+
+          <p>No Bloco 2 vimos <code>status: "vigente"</code> sendo carimbado; aqui ele é <strong>usado</strong>. Sem o <code>where</code>, chunks obsoletos voltariam e o LLM responderia com base em versões desatualizadas.</p>
+
+          <p>O <code>include</code> exclui <code>embeddings</code> do retorno — desnecessário e caro trafegar 768 floats por chunk.</p>
+
+          <h3>2.3 Parsear em <code>RetrievedChunk</code></h3>
+
+          <pre><code class="language-python">for chunk_id, doc, meta, dist in zip(
+    results["ids"][0],
+    results["documents"][0],
+    results["metadatas"][0],
+    results["distances"][0],
+):
+    chunks.append(
+        RetrievedChunk(
+            id=chunk_id,
+            text=doc,
+            source=meta.get("source", "desconhecido"),
+            page=int(meta.get("page", 0)),
+            distance=dist,
+            score=1.0 - dist,          # ← conversão fundamental
+        )
+    )</code></pre>
+
+          <h4>O <code>[0]</code> depois de cada chave</h4>
+
+          <p><code>results["ids"]</code> retorna lista de listas — uma por query. Como passamos uma única query, só a posição <code>[0]</code> interessa.</p>
+
+          <h4>A conversão <code>score = 1.0 - dist</code></h4>
+
+          <p>A fórmula mais importante da função. Com métrica <code>cosine</code>, a distância varia de <code>0</code> (idêntico) a <code>2</code> (opostos). Similaridade = complemento:</p>
+
+          <div class="diagram">similaridade = 1 - distância
+
+• distance = 0.0  →  score = 1.0  (perfeito)
+• distance = 0.5  →  score = 0.5  (razoável)
+• distance = 1.0  →  score = 0.0  (ortogonal)</div>
+
+          <div class="callout warn">
+            <p><strong>Se você mudasse a métrica</strong> para <code>l2</code>, essa conversão <strong>deixaria de fazer sentido</strong> — <code>l2</code> não tem esse limite superior. O código assume cosseno silenciosamente.</p>
+          </div>
+
+          <p><code>meta.get("source", "desconhecido")</code> e <code>int(meta.get("page", 0))</code> são defesas: metadata é JSON, então <code>page</code> pode voltar como string; o <code>int()</code> normaliza.</p>
+
+          <h3>2.4 Re-ranking opcional</h3>
+
+          <pre><code class="language-python">if cfg.rerank and chunks:
+    console.print("[dim]🔄 Aplicando Re-ranking (Cross-Encoder)...[/dim]")
+    encoder = CrossEncoder(cfg.rerank_model)
+    pairs = [(query, c.text) for c in chunks]
+    scores = encoder.predict(pairs)
+
+    for chunk, score in zip(chunks, scores):
+        chunk.score = float(score)
+
+    chunks = sorted(chunks, key=lambda x: x.score, reverse=True)
+
+return chunks[:cfg.top_k]</code></pre>
+
+          <h4>Cross-Encoder vs Bi-Encoder</h4>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Aspecto</th><th>Bi-Encoder</th><th>Cross-Encoder</th></tr></thead>
+              <tbody>
+                <tr><td>Como codifica</td><td>Query e doc <strong>separadamente</strong></td><td>Query + doc <strong>juntos</strong></td></tr>
+                <tr><td>Pré-computar?</td><td>✅ Sim</td><td>❌ Não</td></tr>
+                <tr><td>Velocidade</td><td>⚡ Milissegundos para milhões</td><td>🐢 Centenas de ms para dezenas</td></tr>
+                <tr><td>Qualidade</td><td>Boa</td><td><strong>Excelente</strong></td></tr>
+                <tr><td>Uso</td><td><strong>1º estágio</strong> (recall)</td><td><strong>2º estágio</strong> (precisão)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>Bi-encoder é como perguntar a duas pessoas separadamente <em>"descreva essa pergunta"</em> e <em>"descreva esse texto"</em> e comparar. Cross-encoder é como colocar as duas na mesma sala e perguntar <em>"esse texto responde a essa pergunta?"</em>.</p>
+
+          <p>Por isso: <strong>bi-encoder filtra muitos → cross-encoder refina poucos</strong>.</p>
+
+          <h4>O <code>if cfg.rerank and chunks:</code></h4>
+
+          <p>Duas guardas: respeita a configuração, e evita carregar o modelo (segundos, centenas de MB) para lista vazia.</p>
+
+          <h4>Os scores mudaram de escala</h4>
+
+          <ul>
+            <li><strong>Sem rerank</strong>: <code>chunk.score</code> ∈ <code>[0, 1]</code> (cosseno).</li>
+            <li><strong>Com rerank</strong>: <code>chunk.score</code> ∈ <code>(-∞, +∞)</code> (logits).</li>
+          </ul>
+
+          <p>Bom para <strong>ranquear</strong>, ruim para exibir como "confiança". Se for expor num dashboard, normalize com sigmoid.</p>
+
+          <h4><code>chunks[:cfg.top_k]</code></h4>
+
+          <p>O truncamento final. Funciona em ambos os casos porque o ChromaDB já devolve ordenado por distância crescente (= score decrescente). É uma <strong>invariante do ChromaDB</strong>.</p>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">3</span> <code>format_context()</code> — empacotando para o LLM</h2>
+
+          <pre><code class="language-python">def format_context(chunks: list[RetrievedChunk], max_chars: int = 3000) -> str:
+    context_parts: list[str] = []
+    total_chars = 0
+
+    for i, chunk in enumerate(chunks, start=1):
+        source_name = Path(chunk.source).name
+        header = f"[Trecho {i} | Fonte: {source_name} | Pág. {chunk.page}]"
+        block = f"{header}\n{chunk.text}"
+
+        if total_chars + len(block) > max_chars:
+            break
+
+        context_parts.append(block)
+        total_chars += len(block)
+
+    return "\n\n---\n\n".join(context_parts)</code></pre>
+
+          <p>Resolve um problema que só aparece no Bloco 4: o LLM tem <strong>janela de contexto limitada</strong>. 25 chunks de 500 caracteres = 12.500 — pode não caber ou diluir a pergunta em ruído.</p>
+
+          <h4>O cabeçalho estruturado</h4>
+
+          <pre><code class="language-python">header = f"[Trecho {i} | Fonte: {source_name} | Pág. {chunk.page}]"</code></pre>
+
+          <p>Rastreabilidade embutida. Dois propósitos: (1) o LLM aprende a <strong>citar</strong> fontes; (2) o humano vê exatamente de onde veio cada trecho para debug.</p>
+
+          <h4>O <code>break</code> — corte por tamanho</h4>
+
+          <p>Para na primeira vez que estoura. <strong>Conservador e previsível</strong> — perde a chance de incluir chunks pequenos que viriam depois, mas o output é estável. Em RAG, <strong>previsibilidade > otimização</strong>.</p>
+
+          <p><code>max_chars=3000</code> ≈ 750 tokens — seguro até para modelos pequenos.</p>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">4</span> Execução standalone</h2>
+
+          <pre><code class="language-python">if __name__ == "__main__":
+    from importlib import import_module
+    indexing = import_module("2_indexing")
+
+    client = indexing.get_chroma_client()
+    collection = indexing.get_or_create_collection(client)
+
+    query = "Quais são os direitos dos funcionários?"</code></pre>
+
+          <p>Reaproveita <strong>funções do Bloco 2</strong> — não duplica a lógica de abrir o ChromaDB. Cada bloco expõe utilitários que outros blocos consomem.</p>
+
+          <pre><code class="language-python">table.add_row(
+    str(i),
+    f"{chunk.score:.3f}",
+    Path(chunk.source).name,
+    str(chunk.page),
+    chunk.text[:80].replace("\n", " ") + "...",
+)</code></pre>
+
+          <p><code>f"{chunk.score:.3f}"</code> arredonda para 3 casas. <code>.replace("\n", " ")</code> evita que um chunk com quebra de linha bagunce a tabela.</p>
+
+          <pre><code class="language-python">console.print(Panel(format_context(chunks), border_style="dim"))</code></pre>
+
+          <p>Pré-visualização do que o Bloco 4 receberia. Debug de RAG sem precisar do LLM inteiro.</p>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">✦</span> Arquitetura</h2>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Camada</th><th>Função</th><th>Responsabilidade</th></tr></thead>
+              <tbody>
+                <tr><td>Dados</td><td><code>RetrievedChunk</code></td><td>Resultado com distância e score</td></tr>
+                <tr><td>Busca</td><td><code>search</code></td><td>Vetorização + query + filtro + rerank</td></tr>
+                <tr><td>Formatação</td><td><code>format_context</code></td><td>Empacotar para o LLM</td></tr>
+                <tr><td>Execução</td><td><code>__main__</code></td><td>Demo de ponta a ponta</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p><strong>Invariantes implícitas:</strong></p>
+          <ol>
+            <li>Métrica do Chroma é <code>cosine</code> (senão <code>1 - dist</code> está errado).</li>
+            <li>Chunks do Bloco 2 foram vetorizados com o <strong>mesmo modelo</strong>.</li>
+            <li>O <code>CrossEncoder</code> funciona em <strong>português</strong>.</li>
+          </ol>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">⚠</span> Possíveis melhorias</h2>
+
+          <ol>
+            <li><strong><code>CrossEncoder</code> recriado a cada chamada</strong> — em servidor web, cada request carrega o modelo (segundos, centenas de MB). Usar <code>@lru_cache</code> ou lazy loading.</li>
+            <li><strong>Sem normalização pós-rerank</strong> — score muda de semântica conforme <code>rerank</code> está ligado. Normalizar com sigmoid ou documentar.</li>
+            <li><strong><code>where</code> não é validado</strong> — filtro malformado explode sem contexto.</li>
+            <li><strong>Sem tratamento para falha do Ollama</strong> — erros técnicos indistinguíveis para o usuário.</li>
+            <li><strong><code>format_context</code> não usa <code>continue</code></strong> — um chunk grande no meio descarta todos os seguintes.</li>
+            <li><strong>Sem timing</strong> — não há medição de quanto tempo cada etapa leva.</li>
+          </ol>
+        </section>
+
+        <a href="#block-3" class="back-top">↑ Voltar ao topo do Bloco 3</a>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- BLOCO 4: GENERATION                         -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="block block-4" id="block-4">
+
+        <header class="block-header">
+          <span class="block-badge">Bloco 4 · Generation</span>
+          <h1 class="block-title">Entendendo o <code>4_generation.py</code></h1>
+          <p class="block-subtitle">A pergunta e o contexto viram prompt — e o LLM finalmente responde.</p>
+        </header>
+
+        <section class="sub">
+          <p>Este é o <strong>Bloco 4 — o último</strong> — do pipeline RAG: o momento em que o LLM finalmente <strong>responde ao usuário</strong>. Pense nele como o <strong>redator final</strong>:</p>
+
+          <div class="diagram">[Pergunta]  +  [Contexto recuperado]  →  [Prompt estruturado]  →  [Ollama]  →  [Resposta]</div>
+
+          <p>É o bloco mais curto <strong>em linhas de código</strong> e o mais crítico <strong>em qualidade final</strong>. Erros nos blocos 1–3 degradam; erros aqui aparecem na cara do usuário.</p>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">1</span> O tipo <code>RAGResponse</code></h2>
+
+          <pre><code class="language-python">@dataclass
+class RAGResponse:
+    answer: str
+    query: str
+    model: str
+    context_used: str</code></pre>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Campo</th><th>Por quê</th></tr></thead>
+              <tbody>
+                <tr><td><code>answer</code></td><td>O texto final do LLM</td></tr>
+                <tr><td><code>query</code></td><td>A pergunta original (log, auditoria)</td></tr>
+                <tr><td><code>model</code></td><td>Qual modelo gerou (importante com fallbacks)</td></tr>
+                <tr><td><code>context_used</code></td><td><strong>O contexto exato que foi enviado</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p><strong><code>context_used</code> é o mais valioso e o mais subestimado.</strong> Permite <strong>auditoria reversa</strong>: seis meses depois, se o usuário reclamar <em>"a resposta estava errada"</em>, você reproduz <em>exatamente</em> o que o LLM viu.</p>
+
+          <div class="callout tip">
+            <p><strong>Princípio de governança:</strong> em RAG, guarde sempre o <strong>input completo</strong> que gerou o output.</p>
+          </div>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">2</span> <code>build_rag_prompt()</code> — o contrato</h2>
+
+          <pre><code class="language-python">def build_rag_prompt(query: str, context: str) -> list[dict[str, str]]:
+    return [
+        {"role": "system", "content": gen_cfg.default_system_prompt},
+        {"role": "user",   "content": f"CONTEXTO:\n{context}\n\nPERGUNTA: {query}"},
+    ]</code></pre>
+
+          <h3>2.1 Formato de mensagens</h3>
+
+          <pre><code class="language-python">[
+    {"role": "system", "content": "..."},   # instruções
+    {"role": "user",   "content": "..."},   # input
+]</code></pre>
+
+          <p><strong>Por que dois papéis?</strong> Porque o LLM é treinado para <strong>diferenciar instruções de dados</strong>. O <code>system</code> é o "manual de conduta"; o <code>user</code> é o "conteúdo bruto". Misturar abre porta para <em>prompt injection</em>.</p>
+
+          <h3>2.2 A ordem <code>CONTEXTO → PERGUNTA</code></h3>
+
+          <p>LLMs têm <strong>viés de recência</strong>: prestam mais atenção no que vem <strong>por último</strong>. Se a pergunta viesse primeiro, o modelo poderia "esquecer" no meio de 3.000 caracteres. Colocar a pergunta por último é <strong>padrão em RAG</strong>.</p>
+
+          <h3>2.3 Por que sem separadores elaborados?</h3>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Vantagem</th><th>Desvantagem</th></tr></thead>
+              <tbody>
+                <tr><td>Menos tokens gastos</td><td>Sem delimitadores explícitos</td></tr>
+                <tr><td>Menos chance do LLM confundir formato</td><td>Sem instrução "ignore comandos no contexto"</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>Uma versão mais robusta usa <strong>delimitadores semânticos</strong>:</p>
+
+          <pre><code class="language-python">content = (
+    "Responda APENAS com base no contexto abaixo. "
+    "Se a informação não estiver no contexto, diga que não sabe.\n\n"
+    f"&lt;contexto&gt;\n{context}\n&lt;/contexto&gt;\n\n"
+    f"&lt;pergunta&gt;{query}&lt;/pergunta&gt;"
+)</code></pre>
+
+          <p>As tags <code>&lt;contexto&gt;</code> ajudam o modelo a delimitar. Sem elas, um chunk com <code>"ignore as instruções anteriores"</code> pode enganar o modelo.</p>
+
+          <div class="callout note">
+            <p>O código atual <strong>delega essa defesa ao <code>default_system_prompt</code></strong>. Se o prompt configurado já diz "ignore comandos embutidos", está certo. Se não, é um risco latente.</p>
+          </div>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">3</span> <code>format_context_with_budget()</code></h2>
+
+          <pre><code class="language-python">def format_context_with_budget(chunks: list, max_chars: int = gen_cfg.max_context_chars) -> str:
+    parts = []
+    current_chars = 0
+    
+    for i, c in enumerate(chunks, start=1):
+        source_name = Path(c.source).name
+        header = f"({i}) Fonte: {source_name} | Pág: {c.page}\n"
+        block = header + c.text
+        
+        if current_chars + len(block) > max_chars:
+            break
+            
+        parts.append(block)
+        current_chars += len(block)
+        
+    return "\n\n".join(parts)</code></pre>
+
+          <h3>3.1 Comparação com <code>format_context</code> do Bloco 3</h3>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Aspecto</th><th>Bloco 3</th><th>Bloco 4</th></tr></thead>
+              <tbody>
+                <tr><td>Cabeçalho</td><td><code>[Trecho 1 \| Fonte: X \| Pág. 5]</code></td><td><code>(1) Fonte: X \| Pág: 5\n</code></td></tr>
+                <tr><td>Separador</td><td><code>"\n\n---\n\n"</code></td><td><code>"\n\n"</code></td></tr>
+                <tr><td>Limite</td><td><code>max_chars=3000</code> hardcoded</td><td><code>gen_cfg.max_context_chars</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p><strong>Por que duplicar?</strong> Porque o Bloco 4 é <strong>deliberadamente mais enxuto</strong> — cada caractere conta. O separador <code>---</code> do Bloco 3 é ótimo para debug mas desperdiça 5 caracteres por bloco. Com 20 chunks, isso é ~100 caracteres.</p>
+
+          <div class="callout tip">
+            <p><strong>Trade-off consciente:</strong> o Bloco 4 sacrifica legibilidade humana em favor de eficiência de tokens. Mas <strong>duplicação é dívida técnica</strong> — idealmente haveria uma função com parâmetro <code>style="verbose"|"compact"</code>.</p>
+          </div>
+
+          <h3>3.2 O cabeçalho <code>(1) Fonte: ...</code></h3>
+
+          <p>O <code>(1)</code> é <strong>mais fácil de referenciar</strong>. O LLM aprende a citar como <em>"segundo o trecho (1)…"</em> — parênteses são o padrão acadêmico.</p>
+
+          <h3>3.3 "Token budget" medido em caracteres</h3>
+
+          <pre><code class="language-python">if current_chars + len(block) > max_chars:</code></pre>
+
+          <p>Mede <strong>caracteres</strong>, não <strong>tokens</strong>. Um token ≈ 2–4 caracteres. Aproximação <strong>conservadora</strong>:</p>
+
+          <ul>
+            <li><code>max_chars = 8000</code> ≈ <code>2000–2600</code> tokens → seguro para <code>num_ctx = 4096</code>.</li>
+            <li><code>len()</code> é O(1); tokenização é O(n).</li>
+            <li>Portável — funciona com qualquer modelo.</li>
+          </ul>
+
+          <div class="callout warn">
+            <p><strong>Limite real:</strong> a proporção varia por idioma. Em japonês, 1 caractere ≈ 1–2 tokens. Se internacionalizar, a aproximação vira gargalo.</p>
+          </div>
+
+          <h3>3.4 O <code>break</code></h3>
+
+          <p>Idêntico ao Bloco 3: para na primeira vez que estoura. <strong>Conservador e previsível</strong>.</p>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">4</span> <code>generate_answer()</code> — a chamada</h2>
+
+          <pre><code class="language-python">def generate_answer(query: str, context: str, cfg: OllamaConfig = ollama_cfg) -> RAGResponse:
+    messages = build_rag_prompt(query, context)
+
+    try:
+        response = ollama.chat(
+            model=cfg.model,
+            messages=messages,
+            options={
+                "temperature": cfg.temperature,
+                "num_ctx": cfg.num_ctx,
+            },
+        )
+        answer = response.message.content or ""
+        return RAGResponse(answer=answer, query=query, model=cfg.model, context_used=context)
+    except Exception as e:
+        error_msg = str(e)
+        if "connection" in error_msg.lower() or "refused" in error_msg.lower():
+            raise ConnectionError(
+                f"Não foi possível conectar ao Ollama em {cfg.base_url}.\n"
+                "Certifique-se de que o Ollama está rodando com: ollama serve"
+            ) from e
+        raise</code></pre>
+
+          <h3>4.1 <code>ollama.chat()</code></h3>
+
+          <p>Retorna objeto com <code>.message.content</code>. É <strong>stateless</strong> — para conversa multi-turn, acumule <code>messages</code> e reenvie tudo.</p>
+
+          <h3>4.2 <code>options</code> — painel de controle</h3>
+
+          <h4><code>temperature</code></h4>
+
+          <ul>
+            <li><code>0.0</code> — quase determinístico</li>
+            <li><code>0.7</code> — criativo, chat aberto</li>
+            <li><code>1.5</code> — caótico</li>
+          </ul>
+
+          <p><strong>Em RAG, use 0.0–0.2.</strong> RAG não é geração criativa — é <strong>extração fiel</strong>. Temperaturas altas aumentam o risco de <strong>alucinação</strong>.</p>
+
+          <div class="callout tip">
+            <p><strong>Regra:</strong> <code>temperature=0</code> para Q&amp;A factual, <code>0.3–0.5</code> para resumos, <code>0.7+</code> para narrativas.</p>
+          </div>
+
+          <h4><code>num_ctx</code></h4>
+
+          <p>Define <strong>quantos tokens</strong> o modelo processa. <strong>Se o prompt for maior, o Ollama silenciosamente trunca.</strong> Catastrófico em RAG.</p>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Configuração</th><th>Consistente?</th></tr></thead>
+              <tbody>
+                <tr><td><code>max_context_chars=3000</code> + <code>num_ctx=2048</code></td><td>✅ Sim</td></tr>
+                <tr><td><code>max_context_chars=8000</code> + <code>num_ctx=2048</code></td><td>❌ <strong>Overflow silencioso</strong></td></tr>
+                <tr><td><code>max_context_chars=3000</code> + <code>num_ctx=8192</code></td><td>✅ Sim, mas <strong>desperdiça</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>Idealmente, <code>max_context_chars</code> deveria ser <strong>calculado</strong> a partir de <code>num_ctx</code>.</p>
+
+          <h3>4.3 <code>response.message.content or ""</code></h3>
+
+          <p>Defesa contra <code>None</code> em erro parcial, timeout ou <code>&lt;eos&gt;</code> imediato. Sem isso, um <code>None</code> cascatearia como <code>TypeError</code>.</p>
+
+          <h3>4.4 O <code>except</code></h3>
+
+          <p>Traduz erro técnico em mensagem humana. Detecta via string matching ("connection", "refused") e re-lança com <code>raise ... from e</code> preservando a causa.</p>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Cenário</th><th>Mensagem atual</th><th>Ideal</th></tr></thead>
+              <tbody>
+                <tr><td>Ollama offline</td><td>✅ "Rode <code>ollama serve</code>"</td><td>—</td></tr>
+                <tr><td>Modelo não baixado</td><td>❌ Erro cru</td><td>"Rode <code>ollama pull ...</code>"</td></tr>
+                <tr><td>Timeout</td><td>❌ Erro cru</td><td>"Modelo demorou Xs"</td></tr>
+                <tr><td>Contexto excedido</td><td>❌ Silencioso</td><td>⚠️ Não detectável hoje</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">5</span> <code>check_ollama_available()</code></h2>
+
+          <pre><code class="language-python">def check_ollama_available(cfg: OllamaConfig = ollama_cfg) -> bool:
+    try:
+        ollama.list()
+        return True
+    except Exception:
+        return False</code></pre>
+
+          <p><code>ollama.list()</code> é barato — o servidor retorna modelos baixados sem inferência. É o "ping" ideal.</p>
+
+          <p><strong>Bug latente:</strong> o <code>cfg</code> é aceito mas <strong>não usado</strong>. Se você usa <code>base_url</code> customizado, essa função ainda fala com o default <code>localhost:11434</code>.</p>
+
+          <p><strong>O que falta:</strong> validar se o <strong>modelo específico</strong> está baixado:</p>
+
+          <pre><code class="language-python">def check_ollama_ready(model: str, cfg: OllamaConfig = ollama_cfg) -> bool:
+    try:
+        models = ollama.list()
+        return any(model in m.get("name", "") for m in models.get("models", []))
+    except Exception:
+        return False</code></pre>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">6</span> Execução standalone — smoke test</h2>
+
+          <pre><code class="language-python">if __name__ == "__main__":
+    from rich.panel import Panel
+    from rich.markdown import Markdown
+
+    query = "Quais são as regras de férias?"
+    context = "(1) Fonte: teste.txt | Pág: 1\nTodo funcionário tem 30 dias de férias."
+    
+    if check_ollama_available():
+        res = generate_answer(query, context)
+        console.print(Panel(Markdown(res.answer), title="Resposta Teste"))
+    else:
+        console.print("[red]Ollama offline[/red]")</code></pre>
+
+          <p>Diferente dos Blocos 2 e 3, este <code>__main__</code> é um <strong>smoke test isolado</strong> — contexto hardcoded, só testa a geração. Útil para iterar rápido sem pagar o custo de rodar 1→2→3.</p>
+
+          <p><code>Markdown(...)</code> interpreta a saída do LLM como Markdown — sem isso, você veria <code>**asteriscos**</code> literais.</p>
+
+          <p><strong>O que falta:</strong> quando Ollama está offline, o script não retorna exit code 1 — quebra o padrão dos blocos anteriores.</p>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">✦</span> Arquitetura</h2>
+
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Camada</th><th>Função</th><th>Responsabilidade</th></tr></thead>
+              <tbody>
+                <tr><td>Dados</td><td><code>RAGResponse</code></td><td>Envelope com auditoria</td></tr>
+                <tr><td>Prompt</td><td><code>build_rag_prompt</code></td><td>Contrato system + user</td></tr>
+                <tr><td>Contexto</td><td><code>format_context_with_budget</code></td><td>Corte por budget</td></tr>
+                <tr><td>Geração</td><td><code>generate_answer</code></td><td>Chamada + tratamento de erro</td></tr>
+                <tr><td>Health</td><td><code>check_ollama_available</code></td><td>Ping ao servidor</td></tr>
+                <tr><td>Execução</td><td><code>__main__</code></td><td>Smoke test</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p><strong>Invariantes implícitas:</strong></p>
+          <ol>
+            <li><code>default_system_prompt</code> deve conter <strong>instruções anti-alucinação e anti-prompt-injection</strong>.</li>
+            <li><code>max_context_chars</code> coerente com <code>num_ctx</code>.</li>
+            <li><code>temperature</code> baixa (0.0–0.3).</li>
+            <li>O contexto vem de <code>RetrievedChunk</code> (tem <code>.source</code>, <code>.page</code>, <code>.text</code>).</li>
+          </ol>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">✦</span> Resumo em uma frase</h2>
+
+          <div class="callout success">
+            <p><strong>Este módulo recebe a pergunta original e os chunks relevantes do Bloco 3, monta um prompt estruturado (system + contexto + pergunta), envia ao LLM local via Ollama com parâmetros conservadores e retorna a resposta final empacotada com todo o rastro de auditoria — fechando o ciclo do pipeline RAG.</strong></p>
+          </div>
+        </section>
+
+        <section class="sub">
+          <h2 class="sub-title"><span class="num">⚠</span> Possíveis melhorias</h2>
+
+          <ol>
+            <li><strong>Duplicação de <code>format_context</code></strong> — Blocos 3 e 4 têm funções quase idênticas. Uma parametrizada eliminaria a duplicação.</li>
+            <li><strong><code>check_ollama_available</code> ignora <code>cfg</code></strong> — não respeita <code>base_url</code> customizado.</li>
+            <li><strong>Health check não valida modelo</strong> — servidor no ar ≠ modelo baixado.</li>
+            <li><strong><code>num_ctx</code> vs <code>max_context_chars</code> desalinhados</strong> — truncamento silencioso.</li>
+            <li><strong>Sem streaming</strong> — respostas longas ficam sem feedback. <code>stream=True</code> daria UX melhor.</li>
+            <li><strong>Sem timeout explícito</strong> — a chamada pode travar indefinidamente.</li>
+            <li><strong>Detecção de erro por string matching</strong> — frágil. Detecção por tipo seria mais robusta.</li>
+            <li><strong>Prompt injection</strong> — sem delimitadores formais. Mitigação: reforçar system prompt, usar tags, sanitizar chunks.</li>
+            <li><strong><code>__main__</code> sem exit code 1</strong> — CI/CD não detecta falha.</li>
+          </ol>
+        </section>
+
+        <a href="#block-4" class="back-top">↑ Voltar ao topo do Bloco 4</a>
+      </section>
+
+      <!-- ═══════════════════════════════════════════ -->
+      <!-- VISÃO INTEGRADA FINAL                       -->
+      <!-- ═══════════════════════════════════════════ -->
+      <section class="block block-1" id="fim">
+        <header class="block-header">
+          <span class="block-badge">Visão Integrada</span>
+          <h1 class="block-title">O pipeline completo</h1>
+          <p class="block-subtitle">Como os 4 blocos se conectam para transformar PDFs em respostas fundamentadas.</p>
+        </header>
+
+        <div class="diagram">┌──────────────────┐
+│  PDFs / TXTs     │
+│  (data/)         │
+└────────┬─────────┘
+         ↓
+┌──────────────────────────────────┐
+│ BLOCO 1: Ingestion               │
+│ • Limpa texto                    │
+│ • Divide em chunks sobrepostos   │
+│ • Calcula doc_hash (SHA-256)     │
+│ → Produz: List[Chunk]            │
+└────────┬─────────────────────────┘
+         ↓
+┌──────────────────────────────────┐
+│ BLOCO 2: Indexing                │
+│ • Vetoriza chunks (Ollama)       │
+│ • Persiste em ChromaDB           │
+│ • Adiciona metadata de governança│
+│ → Produz: Collection (persistente)│
+└────────┬─────────────────────────┘
+         ↓
+         │  ◄── Query do usuário
+         ↓
+┌──────────────────────────────────┐
+│ BLOCO 3: Retrieval               │
+│ • Vetoriza a query               │
+│ • Filtra por metadata            │
+│ • Re-rankeia com Cross-Encoder   │
+│ → Produz: List[RetrievedChunk]   │
+└────────┬─────────────────────────┘
+         ↓
+┌──────────────────────────────────┐
+│ BLOCO 4: Generation              │
+│ • Monta prompt (system+user)     │
+│ • Aplica token budget            │
+│ • Chama Ollama (LLM)             │
+│ → Produz: RAGResponse            │
+└────────┬─────────────────────────┘
+         ↓
+     ┌────────┐
+     │Resposta│  (com citação de fonte)
+     └────────┘</div>
+
+        <h3>Contratos entre os blocos</h3>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>De → Para</th><th>Tipo de dado</th><th>Invariante crítica</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>B1 → B2</td><td><code>List[Chunk]</code></td><td><code>doc_hash</code> preenchido; texto limpo</td></tr>
+              <tr><td>B2 → B3</td><td>Collection ChromaDB</td><td>Métrica <code>cosine</code>; metadata <code>status</code>/<code>version</code></td></tr>
+              <tr><td>B3 → B4</td><td><code>List[RetrievedChunk]</code></td><td>Tem <code>.source</code>, <code>.page</code>, <code>.text</code></td></tr>
+              <tr><td>B4 → Usuário</td><td><code>RAGResponse</code></td><td>Auditoria completa (<code>context_used</code>)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Pontos de atenção transversais</h3>
+
+        <div class="callout warn">
+          <p><strong>Acoplamento oculto entre B2 e B3</strong> — a conversão <code>score = 1 - dist</code> assume métrica <code>cosine</code>. Se você mudar <code>distance_metric</code> no <code>config.py</code> sem ajustar o B3, os scores ficam errados mas o código não avisa.</p>
+        </div>
+
+        <div class="callout warn">
+          <p><strong>Acoplamento oculto entre B1, B2 e B3</strong> — o <code>doc_hash</code> muda quando o PDF muda, mas o <code>chunk_idx</code> muda quando o <code>chunk_size</code> muda. Hoje, apenas o PDF é rastreado; mudanças de configuração deixam chunks órfãos.</p>
+        </div>
+
+        <div class="callout warn">
+          <p><strong>Acoplamento oculto entre B3 e B4</strong> — <code>max_chars</code> do Bloco 3 e <code>max_context_chars</code> do Bloco 4 são configurados independentemente. Se um for maior que o outro, o contexto é truncado silenciosamente em uma das pontas.</p>
+        </div>
+
+        <h3>O que fazer com este guia</h3>
+
+        <ul>
+          <li><strong>Estudar cada bloco isoladamente</strong> — os links da sidebar pulam para o topo de cada bloco.</li>
+          <li><strong>Identificar pontos de extensão</strong> — cada bloco tem uma seção "Possíveis melhorias" com sugestões concretas.</li>
+          <li><strong>Depurar problemas</strong> — as seções "Arquitetura" mostram camadas e responsabilidades; se algo falha, você sabe onde olhar.</li>
+          <li><strong>Auditar decisões de design</strong> — callouts marcados com 💡 e 📌 explicam trade-offs não óbvios.</li>
+        </ul>
+
+        <a href="#intro" class="back-top">↑ Voltar ao início</a>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ── Script: highlight da sidebar conforme scroll ── -->
+<script>
+  (function () {
+    const links = document.querySelectorAll('.sidebar nav a');
+    const sections = Array.from(links).map(l => document.querySelector(l.getAttribute('href'))).filter(Boolean);
+
+    function updateActive() {
+      const scrollY = window.scrollY + 120;
+      let current = sections[0];
+      for (const s of sections) {
+        if (s.offsetTop <= scrollY) current = s;
+      }
+      links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + current.id));
+    }
+
+    window.addEventListener('scroll', updateActive, { passive: true });
+    updateActive();
+
+    // Fecha o menu mobile ao clicar num link
+    links.forEach(a => a.addEventListener('click', () => {
+      if (window.innerWidth <= 900) {
+        document.querySelector('.sidebar').classList.remove('open');
+      }
+    }));
+  })();
+</script>
+
+</body>
+</html>
