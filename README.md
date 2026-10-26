@@ -50,6 +50,7 @@ Exemplo de Aplicação de Visão Computacional usando Deep Learning
 - [Protótipo de um RAG para RH](https://github.com/armandossrecife/my-rag-rh)
 - [Protótipo de App web com RAG](https://github.com/topicos-computacao-aplicada/2025-2/tree/main/web_rag_pdf)
 - [Exemplo de aplicação RAG web](https://github.com/topicos-computacao-aplicada/2025-2/blob/main/docs/exemplo_web_rag.md)
+- [Explicação do Pipeline RAG - Treinamento LLM do Zero](https://htmlpreview.github.io/?https://github.com/topicos-computacao-aplicada/2026-2/blob/main/html/explicacoes_RAG_integrado.html)
 
 ### Agentes de IA
 
