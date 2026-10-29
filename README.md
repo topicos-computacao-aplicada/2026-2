@@ -59,6 +59,7 @@ Exemplo de Aplicação de Visão Computacional usando Deep Learning
 - [Agente de Viagens](https://github.com/armandossrecife/my-travel-ai)
 - [Agente de Resumos de Arquivos](https://github.com/topicos-computacao-aplicada/2025-2/tree/main/agente_simples)
 - [Conceitos básicos sobre Agentes de IA](https://htmlpreview.github.io/?https://github.com/topicos-computacao-aplicada/2026-1/blob/main/html/infografico_agentes_de_ia.html)
+- [Exemplo de Engenharia de Software Agêntica](https://htmlpreview.github.io/?https://github.com/topicos-computacao-aplicada/2026-2/blob/main/html/Engenharia_de_Software_Agentica_apresentacao.html)
 
 ## LangChain
 
