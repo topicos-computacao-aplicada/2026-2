@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>Engenharia de Software Agêntica — apresentação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#E9EDF1; --paper:#FFFFFF; --ink:#18212F; --muted:#566273; --line:#D3DAE2; --soft:#F3F5F8;
+  --navy:#1E3A5F; --navy-t:#E6ECF4;
+  --agent:#0D7F6E; --agent-t:#E2F3EF;
+  --human:#B27500; --human-t:#FCF1DA;
+  --risk:#B23B1E; --risk-t:#FBE7E1;
+  --display:"IBM Plex Sans Condensed","Arial Narrow","Helvetica Neue",Arial,sans-serif;
+  --body:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.45;height:100%;overflow:hidden}
+.viewport{position:fixed;inset:0 0 56px 0;display:flex;align-items:center;justify-content:center}
+.stage-wrap{position:relative}
+.stage{position:absolute;top:0;left:0;width:1280px;height:720px;background:var(--paper);border:1px solid var(--line);transform-origin:0 0;overflow:hidden}
+.slide{position:absolute;inset:0;padding:48px 72px 40px;display:none;flex-direction:column}
+.slide.active{display:flex}
+.part{font-size:14px;color:var(--muted);margin:0 0 6px;font-weight:500}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.005em}
+h2{font-size:40px;line-height:1.08;font-weight:600;color:var(--navy);max-width:36ch}
+.stage svg{max-width:100%;height:auto}
+h3{font-size:21px;line-height:1.2;font-weight:600;color:var(--ink)}
+.lead{font-size:19px;color:var(--muted);max-width:68ch;margin:10px 0 0}
+p{margin:0}
+ul{margin:0;padding-left:1.1em}
+li{margin:.18em 0}
+.body{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0;padding-top:22px}
+.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:start}
+.cols-3{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;align-items:stretch}
+.cols-4{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;align-items:stretch}
+.small{font-size:14.5px;color:var(--muted)}
+.note{font-size:14px;color:var(--muted);border-left:3px solid var(--line);padding:2px 0 2px 12px;margin-top:16px;max-width:90ch}
+.src{font-size:12.5px;color:var(--muted);margin-top:auto;padding-top:12px}
+code,pre,.mono{font-family:var(--mono)}
+pre{margin:0;background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:12px 14px;font-size:13.5px;line-height:1.5;white-space:pre-wrap;color:#1d2735}
+.k{color:var(--navy);font-weight:500}.c{color:#7a8594}.ok{color:var(--agent);font-weight:500}.bad{color:var(--risk);font-weight:500}
+.chip{display:inline-block;font-size:13px;font-weight:500;padding:2px 9px;border-radius:999px;border:1px solid}
+.chip.agent{color:var(--agent);background:var(--agent-t);border-color:#9fd3c8}
+.chip.human{color:var(--human);background:var(--human-t);border-color:#ebcf8f}
+.chip.risk{color:var(--risk);background:var(--risk-t);border-color:#efb7a6}
+.chip.navy{color:var(--navy);background:var(--navy-t);border-color:#b9c8dc}
+.panel{border:1px solid var(--line);border-radius:8px;padding:16px 18px;background:var(--paper)}
+.panel.tint{background:var(--soft)}
+.rule-agent{border-left:4px solid var(--agent)}.rule-human{border-left:4px solid var(--human)}.rule-risk{border-left:4px solid var(--risk)}.rule-navy{border-left:4px solid var(--navy)}
+.rule-dash{border:1px dashed var(--muted)}
+.mech .panel{padding:9px 14px}.mech h3{font-size:18px}
+table{border-collapse:collapse;width:100%;font-size:15.5px}
+th{font-family:var(--display);font-weight:600;text-align:left;font-size:16px;color:var(--navy);border-bottom:2px solid var(--navy);padding:6px 10px}
+td{border-bottom:1px solid var(--line);padding:7px 10px;vertical-align:top}
+.num{font-variant-numeric:tabular-nums}
+
+/* title slide */
+.title-slide{background:linear-gradient(var(--paper),var(--paper));justify-content:space-between}
+.title-slide h1{font-size:86px;line-height:.98;font-weight:700;color:var(--navy);max-width:11ch;letter-spacing:-.02em}
+.title-slide .sub{font-family:var(--display);font-size:30px;font-weight:500;color:var(--ink);margin-top:18px;max-width:30ch;line-height:1.15}
+.title-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:40px;align-items:center;flex:1}
+.byline{font-size:16px;color:var(--muted);line-height:1.5}
+.byline strong{color:var(--ink);font-weight:600}
+
+/* pipeline */
+.pipe{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.pipe button{font:inherit;text-align:left;cursor:pointer;border:1px solid var(--line);background:var(--soft);border-radius:6px;padding:10px 12px 10px;color:var(--ink);position:relative;min-height:66px}
+.pipe button .n{font-family:var(--display);font-weight:600;font-size:14px;color:var(--muted);display:block}
+.pipe button .t{font-family:var(--display);font-weight:600;font-size:18px;line-height:1.1;display:block;margin-top:2px}
+.pipe button[aria-selected="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.pipe button[aria-selected="true"] .n{color:#c9d5e6}
+.pipe button:hover:not([aria-selected="true"]){border-color:var(--navy)}
+.pipe-panel{display:none;grid-template-columns:.9fr 1.1fr;gap:32px;margin-top:18px}
+.pipe-panel.on{display:grid}
+.who{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 12px}
+.loopnote{font-size:14px;color:var(--agent);margin-top:8px}
+
+button:focus-visible,a:focus-visible{outline:3px solid #2a6fdb;outline-offset:2px}
+
+/* controls */
+.controls{position:fixed;left:0;right:0;bottom:0;height:56px;padding:0 16px calc(env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:14px;background:var(--paper);border-top:1px solid var(--line);z-index:5}
+.controls button{font:500 15px var(--body);border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:6px;padding:7px 14px;cursor:pointer}
+.controls button:hover{border-color:var(--navy)}
+.controls button:disabled{opacity:.4;cursor:default}
+.progress{flex:1;height:4px;background:var(--soft);border-radius:2px;overflow:hidden}
+.progress span{display:block;height:100%;background:var(--navy);width:0;transition:width .25s}
+.counter{font-size:14px;color:var(--muted);min-width:64px;text-align:right;font-variant-numeric:tabular-nums}
+.ctitle{font-size:14px;color:var(--muted);max-width:40ch;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (prefers-reduced-motion: reduce){.progress span{transition:none}}
+
+/* narrow screens: slides stacked and scrolled */
+body.flow{overflow:auto}
+body.flow .viewport{position:static;display:block}
+body.flow .stage-wrap{width:auto!important;height:auto!important}
+body.flow .stage{position:static;width:auto;height:auto;transform:none!important;border:none;background:transparent}
+body.flow .slide{position:static;display:flex;padding:28px 18px;background:var(--paper);margin:0 0 10px;border-bottom:1px solid var(--line)}
+body.flow .cols-2,body.flow .cols-3,body.flow .cols-4,body.flow .title-grid,body.flow .pipe-panel.on{grid-template-columns:1fr}
+body.flow .pipe{grid-template-columns:repeat(2,1fr)}
+body.flow h2{font-size:30px}
+body.flow .title-slide h1{font-size:52px}
+body.flow .controls{display:none}
+body.flow svg{max-width:100%;height:auto}
+body.flow .wide-scroll{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage-wrap" id="wrap"><main class="stage" id="stage">
+
+<!-- 1 -->
+<section class="slide title-slide" data-name="inicio" data-title="Abertura">
+  <div class="title-grid">
+    <div>
+      <h1>Engenharia de Software Agêntica</h1>
+      <p class="sub">Da codificação assistida à orquestração de agentes de IA</p>
+    </div>
+    <svg viewBox="0 0 520 420" width="520" height="420" role="img" aria-label="Laço de agentes: implementador e revisor iteram até aprovar, depois o humano valida">
+      <defs><marker id="t-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#566273"/></marker></defs>
+      <rect x="30" y="20" width="200" height="56" rx="8" fill="#E6ECF4" stroke="#1E3A5F" stroke-width="1.5"/>
+      <text x="130" y="54" text-anchor="middle" font-family="IBM Plex Sans, Helvetica Neue, Arial, sans-serif" font-size="17" font-weight="600" fill="#1E3A5F">Especificação</text>
+      <path d="M130 76V128" stroke="#566273" stroke-width="1.6" fill="none" marker-end="url(#t-a)"/>
+      <rect x="30" y="132" width="200" height="56" rx="8" fill="#E2F3EF" stroke="#0D7F6E" stroke-width="1.5"/>
+      <text x="130" y="166" text-anchor="middle" font-family="IBM Plex Sans, Helvetica Neue, Arial, sans-serif" font-size="17" font-weight="600" fill="#0D7F6E">Agente implementa</text>
+      <rect x="290" y="132" width="200" height="56" rx="8" fill="#E2F3EF" stroke="#0D7F6E" stroke-width="1.5"/>
+      <text x="390" y="166" text-anchor="middle" font-family="IBM Plex Sans, Helvetica Neue, Arial, sans-serif" font-size="17" font-weight="600" fill="#0D7F6E">Agente revisa</text>
+      <path d="M230 150H286" stroke="#566273" stroke-width="1.6" fill="none" marker-end="url(#t-a)"/>
+      <path d="M390 188V228H130V192" stroke="#0D7F6E" stroke-width="1.6" stroke-dasharray="5 4" fill="none" marker-end="url(#t-a)"/>
+      <text x="260" y="248" text-anchor="middle" font-family="IBM Plex Sans, Helvetica Neue, Arial, sans-serif" font-size="14" fill="#0D7F6E">devolve até atender aos critérios</text>
+      <path d="M490 160H505V300H494" stroke="#566273" stroke-width="1.6" fill="none" marker-end="url(#t-a)"/>
+      <rect x="290" y="272" width="200" height="56" rx="8" fill="#FCF1DA" stroke="#B27500" stroke-width="1.5"/>
+      <text x="390" y="306" text-anchor="middle" font-family="IBM Plex Sans, Helvetica Neue, Arial, sans-serif" font-size="17" font-weight="600" fill="#8a5b00">Humano valida</text>
+      <path d="M390 328V368" stroke="#566273" stroke-width="1.6" fill="none" marker-end="url(#t-a)"/>
+      <rect x="290" y="372" width="200" height="40" rx="8" fill="#fff" stroke="#566273" stroke-width="1.2"/>
+      <text x="390" y="398" text-anchor="middle" font-family="IBM Plex Sans, Helvetica Neue, Arial, sans-serif" font-size="15" fill="#18212F">Entrega</text>
+    </svg>
+  </div>
+  <div class="byline"><strong>Armando Soares Sousa</strong><br>Departamento de Computação, Universidade Federal do Piauí (UFPI) · 2026</div>
+</section>
+
+<!-- 2 -->
+<section class="slide" data-name="ideia" data-title="A ideia central">
+  <p class="part">Visão geral</p>
+  <h2>Agentes de IA passam a executar o fluxo de engenharia, não só a sugerir código</h2>
+  <div class="body">
+    <div class="cols-2">
+      <div>
+        <p style="font-size:19px">Engenharia de Software Agêntica é uma forma de desenvolver software em que <strong>múltiplos agentes de IA</strong> atuam de forma coordenada ao longo do ciclo de vida, guiados por <strong>especificações</strong>, com <strong>verificação automatizada</strong> e <strong>supervisão humana</strong>.</p>
+        <p class="lead" style="margin-top:18px">O ganho não vem de digitar mais rápido. Vem de reorganizar quem faz cada etapa e de eliminar a espera entre elas.</p>
+        <div style="margin-top:22px;display:flex;gap:10px;flex-wrap:wrap">
+          <span class="chip agent">Agente de IA</span><span class="chip human">Pessoa</span><span class="chip navy">Especificação e estrutura</span><span class="chip risk">Risco</span>
+        </div>
+        <p class="small" style="margin-top:8px">Estas cores têm o mesmo significado em toda a apresentação.</p>
+      </div>
+      <div class="panel tint">
+        <h3>Benefícios esperados, com a condição de cada um</h3>
+        <table style="margin-top:8px;font-size:15px">
+          <tr><td><strong>Maior produtividade</strong></td><td class="small">em tarefas repetitivas e bem especificadas</td></tr>
+          <tr><td><strong>Ciclos de entrega mais curtos</strong></td><td class="small">quando a revisão não depende de fila humana</td></tr>
+          <tr><td><strong>Mais testes e verificação</strong></td><td class="small">se os critérios de aceitação forem executáveis</td></tr>
+          <tr><td><strong>Documentação automatizada</strong></td><td class="small">gerada a partir da especificação e do código</td></tr>
+          <tr><td><strong>Rastreabilidade</strong></td><td class="small">cada mudança ligada a um requisito</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="slide" data-name="evolucao" data-title="Evolução em três níveis">
+  <p class="part">Parte 1 · Fundamentos</p>
+  <h2>A unidade de automação cresce: da linha de código ao fluxo de entrega</h2>
+  <div class="body">
+    <div class="cols-3">
+      <div class="panel rule-navy">
+        <h3>Nível 1 · Assistente de programação</h3>
+        <p class="small" style="margin:6px 0 10px">O modelo sugere; a pessoa decide, executa e coordena tudo.</p>
+        <pre><span class="c"># você digita</span>
+<span class="k">def</span> validar_cpf(cpf: str) -&gt; bool:
+<span class="c"># a IA sugere o corpo da função;
+# você aceita, edita ou descarta</span></pre>
+        <p class="small" style="margin-top:10px">Unidade: <strong>linha ou função</strong></p>
+      </div>
+      <div class="panel rule-agent">
+        <h3>Nível 2 · Agente de codificação</h3>
+        <p class="small" style="margin:6px 0 10px">Um LLM em laço, com ferramentas, recebe uma tarefa e a executa.</p>
+        <pre>issue #412: CPF com pontos
+  é rejeitado no cadastro
+<span class="ok">agente:</span> localiza validators.py
+<span class="ok">agente:</span> altera 2 arquivos
+<span class="ok">agente:</span> roda os testes
+<span class="ok">agente:</span> abre o pull request</pre>
+        <p class="small" style="margin-top:10px">Unidade: <strong>tarefa ou issue</strong> · pessoa revisa o PR</p>
+      </div>
+      <div class="panel rule-agent" style="background:var(--agent-t)">
+        <h3>Nível 3 · ES agêntica</h3>
+        <p class="small" style="margin:6px 0 10px">Agentes especializados cooperam num fluxo orquestrado.</p>
+        <pre style="background:#fff">especificação de 170 telas
+<span class="ok">agente implementador</span> → tela
+<span class="ok">agente revisor</span> → aprova ou devolve
+<span class="human" style="color:var(--human)">pessoa</span> → valida lotes
+pipeline → entrega</pre>
+        <p class="small" style="margin-top:10px">Unidade: <strong>fluxo de entrega</strong> · pessoa especifica e valida</p>
+      </div>
+    </div>
+    <p class="note">Os exemplos são ilustrativos. Robbes <em>et al.</em> definem agente de codificação como “um LLM executando em laço, com acesso a ferramentas, para cumprir um objetivo” e estimaram traços de uso em 22,20% a 28,66% de 128.018 projetos do GitHub (fev. 2026).</p>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="slide" data-name="definicao" data-title="Como se organiza">
+  <p class="part">Parte 1 · Fundamentos</p>
+  <h2>Um orquestrador distribui o trabalho entre agentes com papéis definidos</h2>
+  <div class="body">
+    <div class="cols-2" style="grid-template-columns:1.1fr .9fr;align-items:center">
+      <svg viewBox="0 0 560 450" width="560" height="450" role="img" aria-label="Orquestrador no centro ligado a seis agentes especializados, com a pessoa acima e o repositório abaixo">
+        <defs><marker id="d-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#566273"/></marker></defs>
+        <g stroke="#9aa6b5" stroke-width="1.3">
+          <line x1="280" y1="205" x2="100" y2="82"/><line x1="280" y1="205" x2="460" y2="82"/>
+          <line x1="280" y1="205" x2="155" y2="210"/><line x1="280" y1="205" x2="405" y2="210"/>
+          <line x1="280" y1="205" x2="100" y2="338"/><line x1="280" y1="205" x2="460" y2="338"/>
+        </g>
+        <path d="M280 48V136" stroke="#B27500" stroke-width="1.5" fill="none" marker-end="url(#d-a)" marker-start="url(#d-a)"/>
+        <path d="M280 274V390" stroke="#566273" stroke-width="1.5" fill="none" marker-end="url(#d-a)" marker-start="url(#d-a)"/>
+        <g font-family="IBM Plex Sans, Helvetica Neue, Arial, sans-serif" font-size="15" font-weight="600" text-anchor="middle">
+          <rect x="195" y="6" width="170" height="40" rx="8" fill="#FCF1DA" stroke="#B27500"/><text x="280" y="31" fill="#8a5b00">Pessoa: especifica e valida</text>
+          <circle cx="280" cy="205" r="68" fill="#E6ECF4" stroke="#1E3A5F" stroke-width="2"/>
+          <text x="280" y="200" fill="#1E3A5F" font-size="17">Orquestrador</text><text x="280" y="221" fill="#1E3A5F" font-size="15" font-weight="500">de agentes</text>
+          <rect x="25" y="60" width="150" height="44" rx="8" fill="#E2F3EF" stroke="#0D7F6E"/><text x="100" y="87" fill="#0D7F6E">Requisitos</text>
+          <rect x="385" y="60" width="150" height="44" rx="8" fill="#E2F3EF" stroke="#0D7F6E"/><text x="460" y="87" fill="#0D7F6E">Arquitetura</text>
+          <rect x="5" y="188" width="150" height="44" rx="8" fill="#E2F3EF" stroke="#0D7F6E"/><text x="80" y="215" fill="#0D7F6E">Documentação</text>
+          <rect x="405" y="188" width="150" height="44" rx="8" fill="#E2F3EF" stroke="#0D7F6E"/><text x="480" y="215" fill="#0D7F6E">Implementação</text>
+          <rect x="25" y="316" width="150" height="44" rx="8" fill="#E2F3EF" stroke="#0D7F6E"/><text x="100" y="343" fill="#0D7F6E">Revisão</text>
+          <rect x="385" y="316" width="150" height="44" rx="8" fill="#E2F3EF" stroke="#0D7F6E"/><text x="460" y="343" fill="#0D7F6E">Testes</text>
+          <rect x="70" y="394" width="420" height="44" rx="8" fill="#F3F5F8" stroke="#566273"/><text x="280" y="421" fill="#18212F" font-weight="500" font-size="14.5">Repositório e ferramentas: IDE, CI/CD, testes, análise estática</text>
+        </g>
+      </svg>
+      <div>
+        <h3>Características</h3>
+        <ul style="margin-top:8px">
+          <li>Trabalho guiado por especificações (<em>spec-driven</em>)</li>
+          <li>Agentes especializados, cada um com um papel</li>
+          <li>Ferramentas reais: repositório, testes, compilador, CI</li>
+          <li>Feedback e correção automáticos entre agentes</li>
+          <li>Validação humana em pontos críticos</li>
+          <li>Integração com CI/CD e rastreabilidade</li>
+        </ul>
+        <p class="note">Ideia antiga, escala nova: MetaGPT (2024) atribui papéis como gerente de produto, arquiteto e engenheiro; ChatDev (2024) organiza agentes em fases de projeto, codificação e teste.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="slide" data-name="agente" data-title="Anatomia de um agente">
+  <p class="part">Parte 1 · Fundamentos</p>
+  <h2>Por dentro de um agente: pensar, agir, observar o resultado e repetir</h2>
+  <div class="body">
+    <div class="cols-2" style="grid-template-columns:.75fr 1.25fr;align-items:center">
+      <svg viewBox="0 0 360 340" width="360" height="340" role="img" aria-label="Ciclo do agente: observar, raciocinar, agir, avaliar">
+        <defs><marker id="c-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#0D7F6E"/></marker></defs>
+        <circle cx="180" cy="170" r="112" fill="none" stroke="#9fd3c8" stroke-width="2"/>
+        <path d="M262 94 A112 112 0 0 1 290 150" fill="none" stroke="#0D7F6E" stroke-width="2" marker-end="url(#c-a)"/>
+        <path d="M268 246 A112 112 0 0 1 216 276" fill="none" stroke="#0D7F6E" stroke-width="2" marker-end="url(#c-a)"/>
+        <path d="M98 246 A112 112 0 0 1 70 190" fill="none" stroke="#0D7F6E" stroke-width="2" marker-end="url(#c-a)"/>
+        <path d="M96 94 A112 112 0 0 1 150 62" fill="none" stroke="#0D7F6E" stroke-width="2" marker-end="url(#c-a)"/>
+        <g font-family="IBM Plex Sans, Helvetica Neue, Arial, sans-serif" font-size="15" font-weight="600" text-anchor="middle">
+          <rect x="125" y="40" width="110" height="36" rx="18" fill="#E2F3EF" stroke="#0D7F6E"/><text x="180" y="63" fill="#0D7F6E">Observar</text>
+          <rect x="240" y="152" width="110" height="36" rx="18" fill="#E2F3EF" stroke="#0D7F6E"/><text x="295" y="175" fill="#0D7F6E">Raciocinar</text>
+          <rect x="125" y="264" width="110" height="36" rx="18" fill="#E2F3EF" stroke="#0D7F6E"/><text x="180" y="287" fill="#0D7F6E">Agir</text>
+          <rect x="10" y="152" width="110" height="36" rx="18" fill="#E2F3EF" stroke="#0D7F6E"/><text x="65" y="175" fill="#0D7F6E">Avaliar</text>
+          <text x="180" y="166" fill="#566273" font-weight="500" font-size="13.5">até cumprir o objetivo</text>
+          <text x="180" y="184" fill="#566273" font-weight="500" font-size="13.5">ou atingir o limite</text>
+        </g>
+      </svg>
+      <div>
+        <h3>Exemplo: trajetória para a issue #412</h3>
+        <table style="margin-top:8px;font-size:14.5px">
+          <thead><tr><th style="width:36%">Pensamento</th><th style="width:36%">Ação</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>O erro só aparece com CPF formatado. Procurar a validação.</td><td><code>grep -rn "def validar_cpf"</code></td><td><code>core/validators.py:14</code></td></tr>
+            <tr><td>A função conta caracteres sem remover pontos e traço.</td><td>Editar <code>validators.py</code></td><td><code>+1 −1</code> linha</td></tr>
+            <tr><td>Confirmar que nada quebrou.</td><td><code>pytest tests/test_validators.py</code></td><td class="ok">12 passed</td></tr>
+          </tbody>
+        </table>
+        <p class="note">Bouzenia e Pradel (ASE 2025) analisaram 120 trajetórias e 2.822 interações de três agentes reais. Execuções que falham tendem a ser mais longas e a consumir mais <em>tokens</em>: o laço sem critério de parada também custa.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="slide" data-name="caso" data-title="O caso industrial">
+  <p class="part">Parte 2 · O caso</p>
+  <h2>Mais de 170 telas de um serviço público reformuladas em 7 dias úteis</h2>
+  <div class="body">
+    <svg viewBox="0 0 1136 200" width="1136" height="200" role="img" aria-label="Prazo estimado de 56 a 90 dias contra 7 dias úteis observados">
+      <g font-family="IBM Plex Sans, Helvetica Neue, Arial, sans-serif">
+        <text x="0" y="40" font-size="16" font-weight="600" fill="#18212F">Estimativa convencional</text>
+        <rect x="230" y="20" width="417" height="32" fill="#E6ECF4" stroke="#1E3A5F"/>
+        <rect x="647" y="20" width="253" height="32" fill="#F3F5F8" stroke="#1E3A5F" stroke-dasharray="5 4"/>
+        <text x="639" y="42" text-anchor="end" font-size="15" fill="#1E3A5F" font-weight="600">56 dias</text>
+        <text x="908" y="42" font-size="15" fill="#1E3A5F" font-weight="600">até 90 dias</text>
+        <text x="0" y="104" font-size="16" font-weight="600" fill="#18212F">Com agentes de IA</text>
+        <rect x="230" y="84" width="52" height="32" fill="#0D7F6E"/>
+        <text x="292" y="106" font-size="15" fill="#0D7F6E" font-weight="600">7 dias úteis</text>
+        <line x1="230" y1="140" x2="900" y2="140" stroke="#9aa6b5"/>
+        <g font-size="13" fill="#566273" text-anchor="middle">
+          <line x1="230" y1="140" x2="230" y2="146" stroke="#9aa6b5"/><text x="230" y="164">0</text>
+          <line x1="379" y1="140" x2="379" y2="146" stroke="#9aa6b5"/><text x="379" y="164">20</text>
+          <line x1="528" y1="140" x2="528" y2="146" stroke="#9aa6b5"/><text x="528" y="164">40</text>
+          <line x1="677" y1="140" x2="677" y2="146" stroke="#9aa6b5"/><text x="677" y="164">60</text>
+          <line x1="826" y1="140" x2="826" y2="146" stroke="#9aa6b5"/><text x="826" y="164">80</text>
+          <text x="565" y="190">dias de trabalho, mesma escala</text>
+        </g>
+      </g>
+    </svg>
+    <div class="cols-3" style="margin-top:14px">
+      <div class="panel">
+        <h3>Redução de prazo</h3>
+        <p style="font-family:var(--display);font-size:38px;font-weight:600;color:var(--agent);line-height:1.1;margin-top:6px" class="num">87,5% a 92,2%</p>
+        <p class="small mono" style="margin-top:6px">R = (T<sub>c</sub> − T<sub>IA</sub>) / T<sub>c</sub></p>
+      </div>
+      <div class="panel">
+        <h3>Aceleração</h3>
+        <p style="font-family:var(--display);font-size:38px;font-weight:600;color:var(--agent);line-height:1.1;margin-top:6px" class="num">8,0× a 12,9×</p>
+        <p class="small mono" style="margin-top:6px">S = T<sub>c</sub> / T<sub>IA</sub> = 56/7 e 90/7</p>
+      </div>
+      <div class="panel">
+        <h3>Outros projetos relatados</h3>
+        <ul class="small" style="margin-top:6px;color:var(--ink)">
+          <li>Centralização de dados: cerca de 2 dias úteis</li>
+          <li>Duas integrações de sistemas: período semelhante</li>
+          <li>Primeira versão funcional de um CRM: 4 dias</li>
+        </ul>
+      </div>
+    </div>
+    <p class="note"><strong style="color:var(--risk)">Leia com cautela:</strong> é um relato da própria Amazing Technologies (out. 2026), não um experimento. O baseline é uma estimativa, não um projeto paralelo, e a medida é prazo de calendário, não esforço: não se sabe quantas pessoas atuaram em cada cenário.</p>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="slide" data-name="laco" data-title="Como o caso funcionou">
+  <p class="part">Parte 2 · O caso</p>
+  <h2>Um agente implementa, outro revisa, e só o que passa chega às pessoas</h2>
+  <div class="body" style="justify-content:flex-start">
+    <svg viewBox="0 0 1136 190" width="1136" height="190" role="img" aria-label="Fluxo: especificação, agente implementador, agente revisor com laço de correção, validação humana e entrega">
+      <defs><marker id="l-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#566273"/></marker></defs>
+      <g font-family="IBM Plex Sans, Helvetica Neue, Arial, sans-serif" text-anchor="middle">
+        <rect x="250" y="8" width="560" height="174" rx="8" fill="#F3F5F8" stroke="#9aa6b5" stroke-dasharray="5 4"/>
+        <text x="262" y="28" text-anchor="start" font-size="13" fill="#566273">Laço automático, sem fila de espera por pessoas</text>
+        <g fill="none" stroke="#566273" stroke-width="1.5">
+          <path d="M214 82H286" marker-end="url(#l-a)"/><path d="M500 82H564" marker-end="url(#l-a)"/>
+          <path d="M760 82H870" marker-end="url(#l-a)"/><path d="M1060 82H1080V140H1060" marker-end="url(#l-a)"/>
+          <path d="M664 132V160H390V112" stroke="#0D7F6E" stroke-dasharray="5 4" marker-end="url(#l-a)"/>
+        </g>
+        <rect x="14" y="52" width="200" height="60" rx="8" fill="#E6ECF4" stroke="#1E3A5F"/><text x="114" y="78" font-size="16" font-weight="600" fill="#1E3A5F">Especificações</text><text x="114" y="98" font-size="13.5" fill="#566273">e critérios definidos</text>
+        <rect x="290" y="52" width="210" height="60" rx="8" fill="#E2F3EF" stroke="#0D7F6E"/><text x="395" y="78" font-size="16" font-weight="600" fill="#0D7F6E">Agente implementador</text><text x="395" y="98" font-size="13.5" fill="#566273">cria a tela pela especificação</text>
+        <polygon points="568,82 664,32 760,82 664,132" fill="#E2F3EF" stroke="#0D7F6E"/><text x="664" y="78" font-size="15" font-weight="600" fill="#0D7F6E">Agente revisor:</text><text x="664" y="97" font-size="14" fill="#0D7F6E">atende?</text>
+        <text x="527" y="176" font-size="13" fill="#0D7F6E">não: devolve com o motivo</text>
+        <text x="815" y="72" font-size="13" fill="#566273">sim</text>
+        <rect x="874" y="52" width="186" height="60" rx="8" fill="#FCF1DA" stroke="#B27500"/><text x="967" y="78" font-size="16" font-weight="600" fill="#8a5b00">Validação humana</text><text x="967" y="98" font-size="13.5" fill="#566273">aceite final</text>
+        <rect x="874" y="124" width="186" height="40" rx="8" fill="#fff" stroke="#566273"/><text x="967" y="149" font-size="15" fill="#18212F">Entrega em 7 dias úteis</text>
+      </g>
+    </svg>
+    <h3 style="margin-top:18px">Exemplo ilustrativo: a tela “Consulta de protocolo” em duas rodadas</h3>
+    <div class="cols-2" style="margin-top:10px;gap:28px">
+      <pre><span class="k">rodada 1 · revisor</span>
+<span class="bad">devolver</span>  campo protocolo sem rótulo acessível
+<span class="bad">devolver</span>  layout quebra em telas de 360 px
+<span class="ok">ok</span>        cores do design system
+<span class="ok">ok</span>        mensagens de erro do catálogo</pre>
+      <pre><span class="k">rodada 2 · revisor</span>
+<span class="ok">ok</span>        rótulo associado ao campo
+<span class="ok">ok</span>        layout em 360 px e 1280 px
+<span class="ok">ok</span>        demais critérios mantidos
+<span class="k">resultado</span> enviado ao lote de validação humana</pre>
+    </div>
+    <p class="note">Segundo o CEO da empresa, a chave “não é a velocidade de digitação do código, mas a coordenação das etapas”. As pessoas passam a examinar artefatos que já passaram por várias rodadas de correção, e não rascunhos.</p>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="slide" data-name="esteira" data-title="A esteira agêntica">
+  <p class="part">Parte 3 · Como funciona</p>
+  <h2>A esteira de desenvolvimento agêntico em seis etapas</h2>
+  <p class="lead" style="font-size:17px">Escolha uma etapa para ver o que acontece, quem faz e um artefato de exemplo, sempre para a mesma tela: <strong>Cadastro de cidadão</strong>.</p>
+  <div class="body" style="justify-content:flex-start;padding-top:16px">
+    <div class="pipe" role="tablist" aria-label="Etapas da esteira">
+      <button role="tab" aria-selected="true" aria-controls="pp1" id="pt1"><span class="n">1</span><span class="t">Especificação</span></button>
+      <button role="tab" aria-selected="false" aria-controls="pp2" id="pt2"><span class="n">2</span><span class="t">Planejamento</span></button>
+      <button role="tab" aria-selected="false" aria-controls="pp3" id="pt3"><span class="n">3</span><span class="t">Implementação</span></button>
+      <button role="tab" aria-selected="false" aria-controls="pp4" id="pt4"><span class="n">4</span><span class="t">Verificação</span></button>
+      <button role="tab" aria-selected="false" aria-controls="pp5" id="pt5"><span class="n">5</span><span class="t">Validação humana</span></button>
+      <button role="tab" aria-selected="false" aria-controls="pp6" id="pt6"><span class="n">6</span><span class="t">Entrega</span></button>
+    </div>
+
+    <div class="pipe-panel on" role="tabpanel" id="pp1" aria-labelledby="pt1">
+      <div><h3>Dizer o que deve ser construído, de forma verificável</h3>
+        <div class="who"><span class="chip human">Pessoa: define e aprova</span><span class="chip agent">Agente de requisitos: rascunha e aponta lacunas</span></div>
+        <ul><li>Requisitos e regras de negócio</li><li>Critérios de aceitação testáveis</li><li>Restrições de segurança e acessibilidade</li><li>Decisões de arquitetura que os agentes devem respeitar</li></ul>
+      </div>
+      <pre><span class="k">feature:</span> cadastro-cidadao
+<span class="k">campos:</span> nome, cpf, email, data_nascimento
+<span class="k">regras:</span>
+  - cpf: { obrigatorio: true, unico: true }
+  - idade minima: 16 anos
+<span class="k">aceitacao:</span>
+  - POST /cidadaos retorna 201; cpf duplicado, 409
+  - sem token de acesso retorna 401
+  - responsivo em 360 px e 1280 px
+  - acessibilidade WCAG 2.1 AA sem violacoes graves</pre>
+    </div>
+
+    <div class="pipe-panel" role="tabpanel" id="pp2" aria-labelledby="pt2">
+      <div><h3>Quebrar a especificação em tarefas e dependências</h3>
+        <div class="who"><span class="chip agent">Agente planejador</span><span class="chip human">Pessoa: revisa o plano em mudanças grandes</span></div>
+        <ul><li>Tarefas pequenas, cada uma verificável</li><li>Ordem de execução e o que pode rodar em paralelo</li><li>Qual agente faz cada tarefa</li></ul>
+      </div>
+      <pre><span class="k">T1</span> componente FormCidadao        <span class="c">frontend · usa design system</span>
+<span class="k">T2</span> endpoint POST /cidadaos        <span class="c">backend</span>
+<span class="k">T3</span> testes de contrato da API      <span class="c">testes · depende de T2</span>
+<span class="k">T4</span> teste ponta a ponta do fluxo   <span class="c">testes · depende de T1, T2</span>
+<span class="k">T5</span> documentação da API e da tela  <span class="c">docs · depende de T2</span>
+<span class="c">paralelo: T1 e T2</span></pre>
+    </div>
+
+    <div class="pipe-panel" role="tabpanel" id="pp3" aria-labelledby="pt3">
+      <div><h3>Gerar o código, alterando quantos arquivos forem necessários</h3>
+        <div class="who"><span class="chip agent">Agentes de frontend, backend e testes</span></div>
+        <ul><li>Código, testes e migrações na mesma mudança</li><li>Execução local dos testes antes de entregar ao revisor</li><li>Cada mudança ligada à tarefa e ao requisito</li></ul>
+      </div>
+      <pre><span class="k">export function</span> cpfValido(cpf: string): boolean {
+  <span class="k">const</span> d = cpf.replace(/\D/g, '');
+  <span class="k">if</span> (d.length !== 11 || /^(\d)\1+$/.test(d)) <span class="k">return</span> false;
+  <span class="k">const</span> dv = (n: number) =&gt; {
+    <span class="k">const</span> s = [...d.slice(0, n)]
+      .reduce((a, c, i) =&gt; a + +c * (n + 1 - i), 0);
+    <span class="k">return</span> ((s * 10) % 11) % 10;
+  };
+  <span class="k">return</span> dv(9) === +d[9] &amp;&amp; dv(10) === +d[10];
+}</pre>
+    </div>
+
+    <div class="pipe-panel" role="tabpanel" id="pp4" aria-labelledby="pt4">
+      <div><h3>Conferir contra os critérios, de forma independente</h3>
+        <div class="who"><span class="chip agent">Agente revisor</span><span class="chip navy">Ferramentas determinísticas</span></div>
+        <ul><li>Testes, análise estática e SAST</li><li>Verificação de acessibilidade e de arquitetura</li><li>Se falhar, volta à implementação com o motivo</li></ul>
+        <p class="loopnote">Este é o laço que roda sem esperar por pessoas.</p>
+      </div>
+      <pre><span class="k">verificacao</span> cadastro-cidadao · rodada 2
+<span class="ok">ok</span>     testes unitarios        42/42
+<span class="ok">ok</span>     contrato da API         201, 409, 401
+<span class="bad">falha</span>  acessibilidade          campo CPF sem rotulo
+<span class="ok">ok</span>     SAST                    0 achados altos
+<span class="ok">ok</span>     regras de arquitetura   sem acesso direto ao banco
+<span class="k">resultado</span> devolvido ao agente de implementacao</pre>
+    </div>
+
+    <div class="pipe-panel" role="tabpanel" id="pp5" aria-labelledby="pt5">
+      <div><h3>Decidir o que exige julgamento</h3>
+        <div class="who"><span class="chip human">Pessoa: revisora e responsável</span></div>
+        <ul><li>Regras de negócio sensíveis e mudanças de dados</li><li>Segurança e privacidade (LGPD)</li><li>Amostragem das telas aprovadas pelos agentes</li><li>Aceite final</li></ul>
+      </div>
+      <pre><span class="k">checklist de validacao</span> lote 4 (24 telas)
+[x] mensagem para CPF duplicado aprovada pelo negocio
+[x] nova coluna data_nascimento: impacto LGPD avaliado
+[x] amostra de 6 telas revisada manualmente
+[ ] tela 87: texto juridico aguarda o setor responsavel
+<span class="k">decisao</span> aprovar 23 telas · reter tela 87</pre>
+    </div>
+
+    <div class="pipe-panel" role="tabpanel" id="pp6" aria-labelledby="pt6">
+      <div><h3>Integrar, publicar e manter rastreável</h3>
+        <div class="who"><span class="chip navy">Pipeline de CI/CD</span><span class="chip agent">Agente de documentação</span></div>
+        <ul><li>Integração contínua e implantação em etapas</li><li>Monitoramento após a publicação</li><li>Ligação entre requisito, commit, teste e versão</li></ul>
+      </div>
+      <pre><span class="k">pipeline</span> v2.4.0
+<span class="ok">ok</span> build e testes             3 min
+<span class="ok">ok</span> deploy em homologacao
+<span class="ok">ok</span> testes de fumaca
+<span class="ok">ok</span> deploy em producao (10% → 100%)
+<span class="k">rastro</span> REQ-CAD-03 → T2 → commit 9f2c1e → teste contrato_cpf_dup</pre>
+    </div>
+    <p class="note" style="margin-top:14px">Todos os artefatos desta tela são exemplos ilustrativos construídos para a apresentação.</p>
+  </div>
+</section>
+
+<!-- 9 -->
+<section class="slide" data-name="sdd" data-title="Desenvolvimento orientado a especificações">
+  <p class="part">Parte 3 · Como funciona</p>
+  <h2>Especificação verificável: cada critério vira um verificador automático</h2>
+  <div class="body">
+    <div class="cols-2" style="grid-template-columns:.85fr 1.15fr">
+      <div>
+        <p>No <strong>desenvolvimento orientado a especificações</strong> (SDD), a especificação, e não o código, é a fonte primária de verdade. O GitHub Spec Kit (2025) organiza o trabalho com agentes em quatro fases, com pontos de verificação entre elas:</p>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:16px">
+          <div class="panel" style="padding:10px;text-align:center;background:var(--navy-t);border-color:#b9c8dc"><strong>Especificar</strong></div>
+          <div class="panel" style="padding:10px;text-align:center;background:var(--navy-t);border-color:#b9c8dc"><strong>Planejar</strong></div>
+          <div class="panel" style="padding:10px;text-align:center;background:var(--navy-t);border-color:#b9c8dc"><strong>Tarefas</strong></div>
+          <div class="panel" style="padding:10px;text-align:center;background:var(--agent-t);border-color:#9fd3c8"><strong>Implementar</strong></div>
+        </div>
+        <p class="lead" style="font-size:17px;margin-top:18px">Quanto mais objetiva a especificação, menos o agente precisa adivinhar, e mais autonomia se pode dar a ele com segurança.</p>
+        <p class="note">Contraexemplo: “faça um cadastro bonito e rápido” não gera nenhum verificador. “Responde em até 300 ms para 95% das requisições” gera um.</p>
+      </div>
+      <div>
+        <table>
+          <thead><tr><th>Critério na especificação</th><th>Verificador automático</th></tr></thead>
+          <tbody>
+            <tr><td>CPF é único</td><td>Teste de integração: segundo POST com o mesmo CPF retorna 409</td></tr>
+            <tr><td>Acesso exige autenticação</td><td>Teste de contrato: requisição sem token retorna 401</td></tr>
+            <tr><td>Interface responsiva</td><td>Teste visual em 360 px e 1280 px</td></tr>
+            <tr><td>Acessibilidade WCAG 2.1 AA</td><td>Verificador automático de acessibilidade sem violações graves</td></tr>
+            <tr><td>Camadas da arquitetura</td><td>Regra executável: a interface não importa o módulo de banco</td></tr>
+            <tr><td>Cobertura de testes</td><td>Limite mínimo no pipeline, por exemplo 80%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 -->
+<section class="slide" data-name="mecanismos" data-title="De onde vem o ganho">
+  <p class="part">Parte 4 · Análise</p>
+  <h2>Quatro mecanismos explicam o ganho de prazo; um quinto é hipótese</h2>
+  <div class="body">
+    <div class="cols-2" style="gap:36px">
+      <div style="display:grid;gap:8px" class="mech">
+        <div class="panel rule-agent"><h3>1. Eliminação da espera entre etapas</h3><p class="small" style="color:var(--ink)">O revisor-agente está sempre disponível. A passagem entre implementar, revisar e corrigir deixa de ter fila.</p></div>
+        <div class="panel rule-agent"><h3>2. Laço fechado de verificação</h3><p class="small" style="color:var(--ink)">Critérios viram decisões de aprovado ou devolvido, repetidas automaticamente até passar.</p></div>
+        <div class="panel rule-agent"><h3>3. Repetição estrutural</h3><p class="small" style="color:var(--ink)">170 telas reutilizam cabeçalho, menu, formulário e tabela. Com o design system fixo, cada tela nova custa menos.</p></div>
+        <div class="panel rule-agent"><h3>4. Especificações verificáveis</h3><p class="small" style="color:var(--ink)">Menos ambiguidade para o agente e um critério objetivo para o revisor.</p></div>
+        <div class="panel rule-dash"><h3 style="color:var(--muted)">5. Paralelização (hipótese)</h3><p class="small">Plausível, mas a fonte não informa se várias telas foram feitas ao mesmo tempo.</p></div>
+      </div>
+      <div>
+        <h3>Por que a espera pesa tanto: a Lei de Little</h3>
+        <p style="font-family:var(--mono);font-size:30px;color:var(--navy);margin:14px 0 6px">W = L / λ</p>
+        <p class="small" style="color:var(--ink)">O tempo médio que um item passa no sistema (<em>W</em>) é o trabalho em andamento (<em>L</em>) dividido pela vazão (<em>λ</em>). Quando revisores humanos estão ocupados, a fila cresce e <em>W</em> passa a ser quase só espera.</p>
+        <div class="panel tint" style="margin-top:18px">
+          <h3 style="font-size:18px">Exemplo ilustrativo</h3>
+          <p class="small" style="color:var(--ink);margin-top:6px">Uma tela passa por 3 rodadas de revisão. Se cada rodada espera 1 dia útil na fila de um revisor humano, a espera soma 3 dias por tela, antes de contar o trabalho em si.</p>
+          <p class="small" style="color:var(--ink);margin-top:8px">Com um revisor-agente, cada rodada começa em minutos. O tempo de trabalho talvez nem mude muito; o que desaparece é a fila.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section class="slide" data-name="evidencia" data-title="Comparação com a evidência">
+  <p class="part">Parte 4 · Análise</p>
+  <h2>A literatura vai de 55,8% mais rápido a 19% mais lento: depende do contexto</h2>
+  <div class="body">
+    <div class="cols-2" style="grid-template-columns:1.4fr .6fr;gap:32px;align-items:center">
+      <svg viewBox="-60 0 760 330" width="760" height="330" role="img" aria-label="Efeito no tempo: Peng menos 55,8 por cento, Paradis cerca de menos 21 por cento, Becker mais 19 por cento, caso industrial menos 87,5 a menos 92,2 por cento">
+        <g font-family="IBM Plex Sans, Helvetica Neue, Arial, sans-serif">
+          <line x1="555" y1="20" x2="555" y2="270" stroke="#18212F" stroke-width="1.2"/>
+          <g stroke="#E3E8EE"><line x1="140" y1="20" x2="140" y2="270"/><line x1="244" y1="20" x2="244" y2="270"/><line x1="348" y1="20" x2="348" y2="270"/><line x1="451" y1="20" x2="451" y2="270"/><line x1="659" y1="20" x2="659" y2="270"/></g>
+          <text x="128" y="58" text-anchor="end" font-size="15" font-weight="600" fill="#18212F">Peng et al. (2023)</text>
+          <text x="128" y="76" text-anchor="end" font-size="12.5" fill="#566273">tarefa autocontida</text>
+          <rect x="323" y="44" width="232" height="28" fill="#1E3A5F"/><text x="315" y="63" text-anchor="end" font-size="14" font-weight="600" fill="#1E3A5F">−55,8%</text>
+          <text x="128" y="118" text-anchor="end" font-size="15" font-weight="600" fill="#18212F">Paradis et al. (2025)</text>
+          <text x="128" y="136" text-anchor="end" font-size="12.5" fill="#566273">96 engenheiros, Google</text>
+          <rect x="468" y="104" width="87" height="28" fill="#1E3A5F"/><text x="460" y="123" text-anchor="end" font-size="14" font-weight="600" fill="#1E3A5F">≈ −21%</text>
+          <text x="128" y="178" text-anchor="end" font-size="15" font-weight="600" fill="#18212F">Becker et al. (2025)</text>
+          <text x="128" y="196" text-anchor="end" font-size="12.5" fill="#566273">projetos maduros</text>
+          <rect x="555" y="164" width="79" height="28" fill="#B23B1E"/><text x="642" y="183" font-size="14" font-weight="600" fill="#B23B1E">+19%</text>
+          <text x="128" y="238" text-anchor="end" font-size="15" font-weight="600" fill="#18212F">Caso industrial (2026)</text>
+          <text x="128" y="256" text-anchor="end" font-size="12.5" fill="#566273">prazo, não tempo em tarefa</text>
+          <rect x="191.5" y="224" width="363.5" height="28" fill="#E2F3EF" stroke="#0D7F6E" stroke-width="1.5" stroke-dasharray="5 3"/>
+          <rect x="172" y="224" width="19.5" height="28" fill="#9fd3c8"/>
+          <text x="200" y="243" font-size="14" font-weight="600" fill="#0D7F6E">−87,5% a −92,2%</text>
+          <g font-size="12.5" fill="#566273" text-anchor="middle"><text x="140" y="290">−100%</text><text x="244" y="290">−75%</text><text x="348" y="290">−50%</text><text x="451" y="290">−25%</text><text x="555" y="290">0</text><text x="659" y="290">+25%</text></g>
+          <text x="347" y="318" text-anchor="middle" font-size="13" fill="#566273">variação do tempo com IA; à esquerda, menos tempo</text>
+        </g>
+      </svg>
+      <div>
+        <table style="font-size:14.5px">
+          <tr><td><strong>Peng</strong></td><td>Experimento controlado com Copilot; implementar um servidor HTTP em JavaScript.</td></tr>
+          <tr><td><strong>Paradis</strong></td><td>Experimento randomizado com 96 engenheiros do Google; intervalo de confiança amplo.</td></tr>
+          <tr><td><strong>Becker</strong></td><td>16 desenvolvedores experientes, 246 tarefas reais em projetos que conheciam há anos.</td></tr>
+          <tr><td><strong>Caso</strong></td><td>Relato da empresa, caso único, contra estimativa; tracejado porque mede outra coisa.</td></tr>
+        </table>
+        <p class="note">Não existe um fator universal de produtividade da IA. O caso de 92% e o resultado de +19% não se contradizem: tratam de tarefas e medidas diferentes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 -->
+<section class="slide" data-name="matriz" data-title="Onde funciona melhor">
+  <p class="part">Parte 4 · Análise</p>
+  <h2>O ganho cresce com o potencial de automação e cai com a complexidade de contexto</h2>
+  <div class="body">
+    <div class="cols-2" style="grid-template-columns:.95fr 1.05fr;align-items:center">
+      <svg viewBox="0 0 470 450" width="470" height="450" role="img" aria-label="Matriz dois por dois: potencial de automação contra complexidade de contexto">
+        <defs><marker id="m-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#566273"/></marker></defs>
+        <g font-family="IBM Plex Sans, Helvetica Neue, Arial, sans-serif">
+          <rect x="60" y="10" width="195" height="195" fill="#E2F3EF"/>
+          <rect x="255" y="205" width="195" height="195" fill="#FBE7E1"/>
+          <rect x="60" y="10" width="390" height="390" fill="none" stroke="#D3DAE2"/>
+          <line x1="255" y1="10" x2="255" y2="400" stroke="#D3DAE2"/><line x1="60" y1="205" x2="450" y2="205" stroke="#D3DAE2"/>
+          <path d="M60 400H458" stroke="#566273" stroke-width="1.3" fill="none" marker-end="url(#m-a)"/>
+          <path d="M60 400V2" stroke="#566273" stroke-width="1.3" fill="none" marker-end="url(#m-a)"/>
+          <text x="255" y="432" text-anchor="middle" font-size="14.5" fill="#18212F">Complexidade de contexto e custo de verificação</text>
+          <text x="24" y="205" text-anchor="middle" font-size="14.5" fill="#18212F" transform="rotate(-90 24 205)">Potencial de automação da tarefa</text>
+          <g font-size="13.5" font-weight="600"><text x="70" y="30" fill="#0D7F6E">Favorável</text><text x="440" y="30" text-anchor="end" fill="#566273">Verificação forte</text><text x="70" y="390" fill="#566273">Pouco a automatizar</text><text x="440" y="390" text-anchor="end" fill="#B23B1E">Desfavorável</text></g>
+          <circle cx="110" cy="90" r="8" fill="#0D7F6E"/><text x="124" y="87" font-size="13.5" font-weight="600" fill="#18212F">Caso analisado</text><text x="124" y="103" font-size="12.5" fill="#566273">−87,5% a −92,2%</text>
+          <circle cx="190" cy="160" r="6.5" fill="#1E3A5F"/><text x="178" y="157" text-anchor="end" font-size="13.5" font-weight="600" fill="#18212F">Peng</text><text x="178" y="173" text-anchor="end" font-size="12.5" fill="#566273">−55,8%</text>
+          <circle cx="285" cy="185" r="6.5" fill="#1E3A5F"/><text x="297" y="182" font-size="13.5" font-weight="600" fill="#18212F">Paradis</text><text x="297" y="198" font-size="12.5" fill="#566273">≈ −21%</text>
+          <circle cx="375" cy="300" r="6.5" fill="#B23B1E"/><text x="363" y="297" text-anchor="end" font-size="13.5" font-weight="600" fill="#18212F">Becker</text><text x="363" y="313" text-anchor="end" font-size="12.5" fill="#566273">+19%</text>
+        </g>
+      </svg>
+      <div style="display:grid;gap:12px">
+        <div class="panel rule-agent"><h3>Favorável</h3><p class="small" style="color:var(--ink)">Telas de um design system, CRUDs, APIs padronizadas, testes a partir de contratos. Muitas peças parecidas e critérios objetivos.</p></div>
+        <div class="panel rule-navy"><h3>Possível, com verificação forte</h3><p class="small" style="color:var(--ink)">Integrações entre sistemas, migração de módulos. Dá para automatizar, mas o verificador precisa ser mais rigoroso que o gerador.</p></div>
+        <div class="panel rule-risk"><h3>Desfavorável</h3><p class="small" style="color:var(--ink)">Núcleo transacional de um banco, sistemas legados com regras implícitas, software médico. O custo de entender e verificar domina.</p></div>
+        <p class="small">Posições qualitativas, a partir do contexto descrito em cada estudo; não é uma medição.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 -->
+<section class="slide" data-name="riscos" data-title="Riscos e desafios">
+  <p class="part">Parte 4 · Análise</p>
+  <h2>Mais código, mais rápido, também significa mais coisa para verificar</h2>
+  <div class="body">
+    <div class="cols-4">
+      <div class="panel rule-risk"><h3>Gargalo de revisão</h3>
+        <p class="small" style="color:var(--ink);margin-top:6px"><strong>Evidência:</strong> commits assistidos por agentes são maiores que os só humanos (Robbes, 2026).</p>
+        <p class="small" style="margin-top:6px"><strong>Exemplo:</strong> um revisor aprova 170 telas em lote e examina cada uma por segundos.</p>
+        <p class="small" style="color:var(--agent);margin-top:6px"><strong>Mitigar:</strong> limite de tamanho de mudança e amostragem por risco.</p></div>
+      <div class="panel rule-risk"><h3>Segurança</h3>
+        <p class="small" style="color:var(--ink);margin-top:6px"><strong>Evidência:</strong> cerca de 40% de 1.689 programas vulneráveis (Pearce, 2022); falhas em 29,5% dos trechos Python e 24,2% dos JavaScript (Fu, 2025).</p>
+        <p class="small" style="margin-top:6px"><strong>Exemplo:</strong> consulta SQL montada por concatenação de texto.</p>
+        <p class="small" style="color:var(--agent);margin-top:6px"><strong>Mitigar:</strong> SAST e análise de dependências obrigatórios.</p></div>
+      <div class="panel rule-risk"><h3>Degradação da arquitetura</h3>
+        <p class="small" style="color:var(--ink);margin-top:6px"><strong>Problema:</strong> uma mudança localmente correta pode piorar o sistema como um todo.</p>
+        <p class="small" style="margin-top:6px"><strong>Exemplo:</strong> a tela passa nos testes, mas acessa o banco direto, sem a camada de serviço.</p>
+        <p class="small" style="color:var(--agent);margin-top:6px"><strong>Mitigar:</strong> regras de arquitetura executáveis no pipeline.</p></div>
+      <div class="panel rule-risk"><h3>Viés de autoverificação</h3>
+        <p class="small" style="color:var(--ink);margin-top:6px"><strong>Problema:</strong> revisor com o mesmo modelo e contexto do implementador compartilha os mesmos pontos cegos.</p>
+        <p class="small" style="margin-top:6px"><strong>Exemplo:</strong> ambos interpretam errado “idade mínima” e o erro passa.</p>
+        <p class="small" style="color:var(--agent);margin-top:6px"><strong>Mitigar:</strong> verificadores diversos, ferramentas determinísticas e amostragem humana.</p></div>
+    </div>
+    <p class="note">Perry <em>et al.</em> (2023) observaram que quem usava assistente produziu código menos seguro e, ao mesmo tempo, confiou mais na segurança dele. Código gerado não é código verificado.</p>
+  </div>
+</section>
+
+<!-- 14 -->
+<section class="slide" data-name="camadas" data-title="Modelo de referência">
+  <p class="part">Parte 5 · Proposta</p>
+  <h2>Modelo de referência: o agente que gera não é o único a declarar o artefato correto</h2>
+  <div class="body">
+    <div style="display:grid;grid-template-columns:1fr 176px;gap:14px">
+      <div style="display:grid;gap:8px">
+        <div class="panel rule-navy" style="display:grid;grid-template-columns:240px 1fr 1fr;gap:16px;padding:10px 16px"><h3>1 · Especificação</h3><span class="small" style="color:var(--ink)">Requisitos, restrições, critérios, contratos, arquitetura</span><span class="small">Ex.: cpf único; WCAG 2.1 AA; API REST</span></div>
+        <div class="panel rule-navy" style="display:grid;grid-template-columns:240px 1fr 1fr;gap:16px;padding:10px 16px"><h3>2 · Planejamento</h3><span class="small" style="color:var(--ink)">Tarefas executáveis e dependências</span><span class="small">Ex.: T1–T5, T1 e T2 em paralelo</span></div>
+        <div class="panel rule-agent" style="display:grid;grid-template-columns:240px 1fr 1fr;gap:16px;padding:10px 16px"><h3>3 · Execução</h3><span class="small" style="color:var(--ink)">Agentes de frontend, backend, dados, testes, documentação</span><span class="small">Ex.: FormCidadao e POST /cidadaos</span></div>
+        <div class="panel" style="display:grid;grid-template-columns:240px 1fr 1fr;gap:16px;padding:10px 16px;border:2px solid var(--agent);background:var(--agent-t)"><h3>4 · Verificação independente</h3><span class="small" style="color:var(--ink)">Testes, análise estática, SAST, dependências, arquitetura</span><span class="small" style="color:var(--ink)">Ex.: rodada 2 falha em acessibilidade e volta para a camada 3</span></div>
+        <div class="panel rule-human" style="display:grid;grid-template-columns:240px 1fr 1fr;gap:16px;padding:10px 16px"><h3>6 · Governança humana</h3><span class="small" style="color:var(--ink)">Decisões críticas de arquitetura e segurança, aceite final</span><span class="small">Ex.: aprovar 23 telas e reter a tela 87</span></div>
+        <div class="panel" style="padding:8px 16px;text-align:center;background:var(--soft)"><span class="small" style="color:var(--ink)">CI/CD e produção</span></div>
+      </div>
+      <div class="panel" style="background:var(--navy-t);border-color:#b9c8dc;display:flex;flex-direction:column;justify-content:center;text-align:center">
+        <h3 style="color:var(--navy);font-size:19px">5 · Orquestração</h3>
+        <p class="small" style="margin-top:8px">Coordena as camadas 2 a 4: dependências, concorrência entre agentes e laços de correção</p>
+      </div>
+    </div>
+    <p class="note">Coordenar agentes concorrentes é um problema em si: Özaytürk e Buzluca (ESEM 2026) mostram ganho ao compartilhar um mesmo workspace Git, mas a interferência cresce várias vezes com mais de dois agentes.</p>
+  </div>
+</section>
+
+<!-- 15 -->
+<section class="slide" data-name="humano" data-title="O papel das pessoas">
+  <p class="part">Parte 5 · Proposta</p>
+  <h2>As pessoas não saem do processo: mudam de lugar dentro dele</h2>
+  <div class="body">
+    <div class="cols-2">
+      <div>
+        <table>
+          <thead><tr><th>Antes</th><th>Com agentes</th></tr></thead>
+          <tbody>
+            <tr><td>Escrever a maior parte do código</td><td>Especificar com critérios verificáveis</td></tr>
+            <tr><td>Revisar o PR de um colega</td><td>Desenhar e auditar verificadores</td></tr>
+            <tr><td>Corrigir os defeitos apontados</td><td>Decidir arquitetura e exceções</td></tr>
+            <tr><td>Documentar no fim</td><td>Validar, aceitar e responder pelo resultado</td></tr>
+          </tbody>
+        </table>
+        <p class="note">Kumar <em>et al.</em> (ASE 2025): 19 desenvolvedores resolveram cerca de metade de 33 issues reais com um agente no IDE. Quem trabalhou de forma incremental e iterou sobre as respostas teve mais sucesso do que quem delegou tudo de uma vez.</p>
+      </div>
+      <div>
+        <h3>Percepção não é medida</h3>
+        <p class="small" style="margin:4px 0 10px">Becker <em>et al.</em> (2025), 16 desenvolvedores experientes em projetos que conheciam:</p>
+        <svg viewBox="0 0 520 210" width="520" height="210" role="img" aria-label="Previsão de 24 por cento mais rápido, percepção de 20 por cento mais rápido, medida de 19 por cento mais lento">
+          <g font-family="IBM Plex Sans, Helvetica Neue, Arial, sans-serif">
+            <line x1="300" y1="10" x2="300" y2="170" stroke="#18212F" stroke-width="1.2"/>
+            <text x="140" y="40" text-anchor="end" font-size="14.5" fill="#18212F">Previsão antes</text>
+            <rect x="204" y="24" width="96" height="26" fill="#B9C8DC"/><text x="196" y="42" text-anchor="end" font-size="13.5" font-weight="600" fill="#1E3A5F">−24%</text>
+            <text x="140" y="90" text-anchor="end" font-size="14.5" fill="#18212F">Percepção depois</text>
+            <rect x="220" y="74" width="80" height="26" fill="#B9C8DC"/><text x="212" y="92" text-anchor="end" font-size="13.5" font-weight="600" fill="#1E3A5F">−20%</text>
+            <text x="140" y="140" text-anchor="end" font-size="14.5" font-weight="600" fill="#18212F">Tempo medido</text>
+            <rect x="300" y="124" width="76" height="26" fill="#B23B1E"/><text x="384" y="142" font-size="13.5" font-weight="600" fill="#B23B1E">+19%</text>
+            <text x="300" y="196" text-anchor="middle" font-size="12.5" fill="#566273">à esquerda, tarefa mais rápida com IA; à direita, mais lenta</text>
+          </g>
+        </svg>
+        <p class="small" style="color:var(--ink)">Governança precisa de métricas, não de impressão.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 16 -->
+<section class="slide" data-name="praticas" data-title="Boas práticas e casos de uso">
+  <p class="part">Parte 6 · Na prática</p>
+  <h2>Por onde começar: boas práticas e casos de uso adequados</h2>
+  <div class="body">
+    <div class="cols-2" style="grid-template-columns:.9fr 1.1fr">
+      <div>
+        <h3>Boas práticas</h3>
+        <ul style="margin-top:8px">
+          <li>Especificações claras, com critérios verificáveis</li>
+          <li>Papéis e responsabilidades definidos para cada agente</li>
+          <li>Testes, análise estática e segurança automatizados</li>
+          <li>Regras de arquitetura executáveis no pipeline</li>
+          <li>Supervisão humana nas decisões críticas</li>
+          <li>Monitoramento de qualidade, dívida técnica e métricas</li>
+          <li>Práticas de CI/CD e DevOps consolidadas antes</li>
+          <li>Política de uso e governança de IA na organização</li>
+        </ul>
+        <p class="note">O DORA 2025 (quase 5.000 profissionais) descreve a IA como amplificador: ela magnifica as forças e as disfunções que a equipe já tem.</p>
+      </div>
+      <div>
+        <table style="font-size:14.5px">
+          <thead><tr><th>Bons candidatos</th><th>Exemplo</th></tr></thead>
+          <tbody>
+            <tr><td>Interfaces e telas</td><td>Migrar 40 formulários para o novo design system</td></tr>
+            <tr><td>APIs e serviços padronizados</td><td>Endpoints de CRUD a partir de um contrato OpenAPI</td></tr>
+            <tr><td>Integrações</td><td>Conector entre o protocolo e o sistema de agendamento</td></tr>
+            <tr><td>Sistemas administrativos</td><td>Cadastros internos de setores e servidores</td></tr>
+            <tr><td>Documentação</td><td>Guia da API gerado e mantido a partir do código</td></tr>
+            <tr><td>Testes automatizados</td><td>Testes de contrato para todos os endpoints existentes</td></tr>
+          </tbody>
+        </table>
+        <p class="small" style="margin-top:10px"><strong style="color:var(--risk)">Pedem cautela:</strong> núcleos transacionais, software crítico (saúde, finanças), arquiteturas inéditas e legados grandes com regras não documentadas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 17 -->
+<section class="slide" data-name="metricas" data-title="O que medir">
+  <p class="part">Parte 6 · Na prática</p>
+  <h2>Para comparar resultados, meça além do prazo</h2>
+  <div class="body">
+    <table>
+      <thead><tr><th style="width:18%">Dimensão</th><th style="width:44%">Métrica</th><th>Pergunta que responde</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Esforço</strong></td><td>Pessoas-dia com e sem agentes, incluindo preparação</td><td>Ficou mais barato ou só mais rápido?</td></tr>
+        <tr><td><strong>Autonomia</strong></td><td>Rodadas agente–revisor e intervenções humanas por artefato</td><td>Quanto os agentes resolvem sozinhos?</td></tr>
+        <tr><td><strong>Custo</strong></td><td>Tokens e infraestrutura por funcionalidade</td><td>Quanto custa cada entrega em computação?</td></tr>
+        <tr><td><strong>Qualidade</strong></td><td>Densidade de defeitos, defeitos em produção, retrabalho em 90 dias</td><td>O que foi entregue continua funcionando?</td></tr>
+        <tr><td><strong>Segurança</strong></td><td>Vulnerabilidades por mil linhas, achados de SAST e dependências</td><td>A velocidade trouxe riscos?</td></tr>
+        <tr><td><strong>Arquitetura</strong></td><td>Duplicação, violações de camada, acoplamento</td><td>O sistema está ficando mais difícil de mudar?</td></tr>
+        <tr><td><strong>Entrega (DORA)</strong></td><td>Lead time, frequência de deploy, taxa de falha, tempo de recuperação</td><td>O fluxo inteiro melhorou?</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Nenhuma métrica isolada captura produtividade. O framework SPACE propõe olhar satisfação, desempenho, atividade, comunicação e fluxo em conjunto.</p>
+  </div>
+</section>
+
+<!-- 18 -->
+<section class="slide" data-name="conclusao" data-title="Conclusão">
+  <p class="part">Conclusão</p>
+  <h2>O impacto maior não é gerar código mais rápido, é mudar o processo</h2>
+  <div class="body">
+    <div class="cols-2" style="gap:48px">
+      <ul style="font-size:18.5px">
+        <li style="margin-bottom:12px">Ganhos de 88% a 92% no prazo são plausíveis em tarefas <strong>repetitivas, bem especificadas e verificáveis</strong>.</li>
+        <li style="margin-bottom:12px">Não há percentual universal: a evidência controlada vai de <strong>−55,8% a +19%</strong> no tempo.</li>
+        <li style="margin-bottom:12px">O ganho vem da <strong>orquestração e da verificação automática</strong>, que eliminam a espera entre etapas.</li>
+        <li>O futuro é colaboração humano–agente, com foco em <strong>especificação, verificação e governança</strong>.</li>
+      </ul>
+      <div class="panel" style="background:var(--navy);border-color:var(--navy);color:#fff;padding:28px">
+        <p style="font-size:15px;color:#c9d5e6">A pergunta deixa de ser se LLMs conseguem escrever código e passa a ser:</p>
+        <p style="font-family:var(--display);font-size:29px;line-height:1.2;font-weight:600;margin-top:12px">Como construir sistemas em que agentes produzam software em escala sem comprometer correção, segurança, arquitetura e manutenção de longo prazo?</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 19 -->
+<section class="slide" data-name="referencias" data-title="Referências">
+  <p class="part">Referências</p>
+  <h2>Referências principais</h2>
+  <div class="body" style="justify-content:flex-start;padding-top:14px">
+    <ol style="font-size:13.5px;columns:2;column-gap:40px;padding-left:1.4em;line-height:1.4">
+      <li>A. P. Vieira e Amazing Technologies, “IA acelera desenvolvimento de software em até 92%, afirma estudo,” BRA 1, 26 out. 2026.</li>
+      <li>R. Robbes <em>et al.</em>, “Agentic much? Adoption of coding agents on GitHub,” ACM TOSEM, 2026.</li>
+      <li>S. Peng <em>et al.</em>, “The impact of AI on developer productivity: Evidence from GitHub Copilot,” arXiv:2302.06590, 2023.</li>
+      <li>E. Paradis <em>et al.</em>, “How much does AI impact development speed? An enterprise-based randomized controlled trial,” ICSE-SEIP, 2025.</li>
+      <li>J. Becker <em>et al.</em>, “Measuring the impact of early-2025 AI on experienced open-source developer productivity,” METR, arXiv:2507.09089, 2025.</li>
+      <li>D. DeBellis <em>et al.</em>, “DORA 2025 state of AI-assisted software development report,” Google, 2025.</li>
+      <li>I. Bouzenia e M. Pradel, “Understanding software engineering agents: A study of thought-action-result trajectories,” ASE, 2025.</li>
+      <li>S. Hong <em>et al.</em>, “MetaGPT: Meta programming for a multi-agent collaborative framework,” ICLR, 2024.</li>
+      <li>C. Qian <em>et al.</em>, “ChatDev: Communicative agents for software development,” ACL, 2024.</li>
+      <li>H. Özaytürk e F. Buzluca, “Coordinating agents on a shared Git workspace,” ESEM, LIPIcs vol. 394, 2026.</li>
+      <li>D. Delimarsky, “Spec-driven development with AI: Get started with a new open source toolkit,” The GitHub Blog, 2025.</li>
+      <li>H. Pearce <em>et al.</em>, “Asleep at the keyboard? Assessing the security of GitHub Copilot’s code contributions,” IEEE S&amp;P, 2022.</li>
+      <li>N. Perry <em>et al.</em>, “Do users write more insecure code with AI assistants?,” ACM CCS, 2023.</li>
+      <li>Y. Fu <em>et al.</em>, “Security weaknesses of Copilot-generated code in GitHub projects,” ACM TOSEM, 2025.</li>
+      <li>A. Kumar <em>et al.</em>, “Why AI agents still need you: Findings from developer-agent collaborations in the wild,” ASE, 2025.</li>
+      <li>N. Forsgren <em>et al.</em>, “The SPACE of developer productivity,” ACM Queue, 2021.</li>
+      <li>J. D. C. Little, “A proof for the queuing formula: L = λW,” Operations Research, 1961.</li>
+    </ol>
+  </div>
+</section>
+
+</main></div></div>
+
+<nav class="controls" aria-label="Navegação dos slides">
+  <button id="prev" type="button">Anterior</button>
+  <button id="next" type="button">Próximo</button>
+  <span class="ctitle" id="ctitle"></span>
+  <div class="progress" aria-hidden="true"><span id="bar"></span></div>
+  <span class="counter" id="counter" aria-live="polite"></span>
+</nav>
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const names = slides.map(s => s.dataset.name);
+  const stage = document.getElementById('stage'), wrap = document.getElementById('wrap');
+  const prev = document.getElementById('prev'), next = document.getElementById('next');
+  const bar = document.getElementById('bar'), counter = document.getElementById('counter'), ctitle = document.getElementById('ctitle');
+  let cur = 0;
+
+  function show(i, fromHash){
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, k) => s.classList.toggle('active', k === cur));
+    counter.textContent = (cur + 1) + ' / ' + slides.length;
+    ctitle.textContent = slides[cur].dataset.title || '';
+    bar.style.width = ((cur + 1) / slides.length * 100) + '%';
+    prev.disabled = cur === 0; next.disabled = cur === slides.length - 1;
+    const h = '#' + names[cur];
+    if (!fromHash && location.hash !== h) location.hash = h;
+  }
+  function fromHash(){
+    const n = location.hash.replace('#', '');
+    const i = names.indexOf(n);
+    if (document.body.classList.contains('flow')) {
+      if (i >= 0) slides[i].scrollIntoView();
+      return;
+    }
+    show(i >= 0 ? i : 0, true);
+  }
+  function fit(){
+    const flow = window.innerWidth < 760;
+    document.body.classList.toggle('flow', flow);
+    if (flow) { stage.style.transform = 'none'; wrap.style.width = ''; wrap.style.height = ''; return; }
+    const availW = window.innerWidth - 24, availH = window.innerHeight - 56 - 24;
+    const s = Math.min(availW / 1280, availH / 720);
+    stage.style.transform = 'scale(' + s + ')';
+    wrap.style.width = (1280 * s) + 'px'; wrap.style.height = (720 * s) + 'px';
+  }
+
+  prev.addEventListener('click', () => show(cur - 1));
+  next.addEventListener('click', () => show(cur + 1));
+  document.addEventListener('keydown', e => {
+    if (document.body.classList.contains('flow')) return;
+    if (e.target.closest && e.target.closest('[role="tablist"]') && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) return;
+    if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); show(cur + 1); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); show(cur - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); show(0); }
+    else if (e.key === 'End') { e.preventDefault(); show(slides.length - 1); }
+  });
+  window.addEventListener('hashchange', fromHash);
+  window.addEventListener('resize', fit);
+
+  // pipeline tabs
+  const tabs = Array.from(document.querySelectorAll('.pipe [role="tab"]'));
+  function selectTab(t){
+    tabs.forEach(b => {
+      const on = b === t;
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+      b.tabIndex = on ? 0 : -1;
+      document.getElementById(b.getAttribute('aria-controls')).classList.toggle('on', on);
+    });
+  }
+  tabs.forEach((b, i) => {
+    b.tabIndex = i === 0 ? 0 : -1;
+    b.addEventListener('click', () => selectTab(b));
+    b.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const j = (i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+        selectTab(tabs[j]); tabs[j].focus();
+      }
+    });
+  });
+
+  fit(); fromHash();
+  if (!location.hash) show(0, true);
+})();
+</script>
+</body>
+</html>
